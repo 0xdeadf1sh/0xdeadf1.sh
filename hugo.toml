@@ -96,3 +96,7 @@ noClasses = false
 lineNos = true
 lineNumbersInTable = false
 style = 'monokai'
+
+[caches]
+  [caches.images]
+    dir = ':cacheDir/images'
