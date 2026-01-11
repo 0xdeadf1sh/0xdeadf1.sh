@@ -1,0 +1,98 @@
+baseURL = 'https://example.org/'
+languageCode = 'en-us'
+title = '0xdeadf1.sh'
+theme = 'typo'
+
+# Google analytics code
+# googleAnalytics = "G-xxxxxxxxx"
+
+[taxonomies]
+tag = 'tags'
+
+[params]
+# Meta description
+description = "A Tech Blog"
+
+# Appearance settings
+theme = 'dark'
+colorPalette = 'eink'
+hideHeader = true
+
+# Intro on main page, content is markdown
+homeIntroTitle = 'Useful links'
+homeIntroContent = """
+
+### Graphics Programming
+- Link 1
+- Link 2
+
+### Cryptography
+- Link 1
+- Link 2
+
+```c
+#include <stdio.h>
+
+int main(void) {
+    printf("hello, world!\\n");
+
+    return 0;
+}
+```
+
+"""
+
+# Collection to display on home
+homeCollectionTitle = 'Posts'
+homeCollection = 'posts'
+
+# Lists parameters
+paginationSize = 100
+listSummaries = true
+listDateFormat = '2 Jan 2006'
+
+showFooter = true
+footerContent = """
+Licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/), powered by [Hugo](https://gohugo.io/) and [tomfran/typo](https://github.com/tomfran/typo)
+"""
+
+# Breadcrumbs
+[params.breadcrumbs]
+enabled = true
+showCurrentPage = true
+home = "~"
+
+# Social icons
+[[params.social]]
+name = "github"
+url = "https://github.com/0xdeadf1sh"
+
+[[params.social]]
+name = "reddit"
+url = "https://reddit.com/user/0xdeadf1sh"
+
+[[params.social]]
+name = "x"
+url = "https://x.com/0xdeadf1sh"
+
+
+# Main menu pages
+[[params.menu]]
+name = "home"
+url = "/"
+
+[[params.menu]]
+name = "posts"
+url = "/posts"
+
+[[params.menu]]
+name = "stories"
+url = "/stories"
+
+# Syntax highlight on code blocks
+[markup]
+[markup.highlight]
+noClasses = false
+lineNos = true
+lineNumbersInTable = false
+style = 'monokai'
