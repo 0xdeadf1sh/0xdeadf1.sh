@@ -53,7 +53,7 @@ listDateFormat = '2 Jan 2006'
 
 showFooter = true
 footerContent = """
-Licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/), powered by [Hugo](https://gohugo.io/) and [tomfran/typo](https://github.com/tomfran/typo)
+Licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/).
 """
 
 # Breadcrumbs
