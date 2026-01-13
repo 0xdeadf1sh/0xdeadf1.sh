@@ -1,68 +1,239 @@
-baseURL = 'https://example.org/'
+baseURL = 'https://0xdeadf1.sh/'
 languageCode = 'en-us'
 title = '0xdeadf1.sh'
 theme = 'typo'
-
-# Google analytics code
-# googleAnalytics = "G-xxxxxxxxx"
 
 [taxonomies]
 tag = 'tags'
 
 [params]
-# Meta description
-description = "A Tech Blog"
+description = "low-level/high-performance/graphics/embedded/cryptography programming"
 
-# Appearance settings
 theme = 'dark'
 colorPalette = 'eink'
 hideHeader = true
 
-# Intro on main page, content is markdown
-homeIntroTitle = 'Useful links'
+homeIntroTitle = './about-me'
 homeIntroContent = """
 
-### Graphics Programming
-- Link 1
-- Link 2
+Computer programmer.
 
-### Cryptography
-- Link 1
-- Link 2
+Interested in low-level/high-performance/graphics/embedded/cryptography programming.
 
-```c
-#include <stdio.h>
+[Free software](https://www.fsf.org/), [free speech](https://www.eff.org/issues/free-speech),
+and [privacy](https://www.eff.org/issues/privacy) advocate.
 
-int main(void) {
-    printf("hello, world!\\n");
+[Arch](https://archlinux.org) btw.
 
-    return 0;
-}
+Technolibertarian and transhumanist.
+
+[Cypherpunk](https://cdn.nakamotoinstitute.org/docs/cypherpunk-manifesto.txt).
+
+[Crypto-Anarchist](https://groups.csail.mit.edu/mac/classes/6.805/articles/crypto/cypherpunks/may-crypto-manifesto.html).
+
+Open source is [good](https://opensource.org/), software patents are [bad](https://endsoftwarepatents.org/).
+
+[OOP](https://gameprogrammingpatterns.com/contents.html) is overrated, learn
+[DOD](https://www.dataorienteddesign.com/dodbook.pdf) instead.
+
+[Grug](https://grugbrain.dev/) is smart.
+
+[RMS](https://stallman.org/) is right.
+
+Remember to [look up](https://www.jpl.nasa.gov/asteroid-watch/eyes-on-asteroids).
+
+The universe belongs to the [machines](https://doi.org/10.1016/j.actaastro.2008.01.025).
+
+The universe probably also [runs **on** a machine](https://simulation-argument.com/simulation/).
+
+We are likely
+[the only intelligent
+beings](https://en.wikipedia.org/wiki/Rare_Earth:_Why_Complex_Life_Is_Uncommon_in_the_Universe)
+in our galaxy.
+
+The future is [wild](https://www.cold-takes.com/all-possible-views-about-humanitys-future-are-wild/).
+
+All nuclear
+weapons must be eliminated and the use/manufacture/storage of all nuclear
+weapons must be [banned](https://www.icanw.org/) unconditionally. 
+
+## ./graphics-programming-links
+- [Scratchapixel](https://www.scratchapixel.com/index.html)
+- [Game Engine Architecture](https://www.gameenginebook.com/)
+- [learnopengl](https://learnopengl.com/)
+- [open.gl](https://open.gl/)
+- [OpenGL 4.0+](https://antongerdelan.net/opengl/)
+- [ogldev](https://ogldev.org/)
+- [Modern OpenGL functions](https://github.com/fendevel/Guide-to-Modern-OpenGL-Functions)
+- [songho](https://songho.ca/)
+- [ogldev](https://ogldev.org/) and his [youtube channel](https://www.youtube.com/@OGLDEV)
+- [GPUGems](https://developer.nvidia.com/gpugems/)
+- [Slang (modern shading language)](https://shader-slang.com/) 
+- [GPUOpen](https://gpuopen.com/)
+- [ARM manga guide](https://interactive.arm.com/story/the-arm-manga-guide-to-the-mali-gpu/page/1)
+- [A trip through the graphics pipeline](https://fgiesen.wordpress.com/2011/07/09/a-trip-through-the-graphics-pipeline-2011-index/)
+- [Cem Yuksel's lectures](https://www.youtube.com/@cem_yuksel) 
+- [Tone mapping](https://64.github.io/tonemapping/).
+- [PBR](https://google.github.io/filament/Filament.html)
+- [FXAA](http://blog.simonrodriguez.fr/articles/2016/07/implementing_fxaa.html)
+- [TAA](https://ziyadbarakat.wordpress.com/2020/07/28/temporal-anti-aliasing-step-by-step/)
+- [Gamma correction](https://blog.johnnovak.net/2016/09/21/what-every-coder-should-know-about-gamma/)
+- [Ray tracing](https://raytracing.github.io/books/RayTracingInOneWeekend.html)
+- [Vulkan tutorial](https://vulkan-tutorial.com/)
+- [vkguide](https://vkguide.dev/)
+- [C++](https://www.learncpp.com/)
+- [High-performance](https://a.co/d/4ltIK0Y)
+- [GDB](https://www.gnu.org/software/gdb/)
+- [RAD Debugger](https://github.com/EpicGamesExt/raddebugger)
+- [Tracy profiler](https://github.com/wolfpld/tracy)
+- [RenderDoc](https://renderdoc.org/)
+- [WebGL](https://a.co/d/55wpDHt)
+- [Javascript](https://books.danielhofstetter.com/javascript-the-good-parts/)
+- [WebGPU](https://shi-yan.github.io/webgpuunleashed)
+- [Game Math](https://gamemath.com/)
+- [Lua](https://www.lua.org/)
+- [The pragmatic bookshelf](https://pragprog.com/)
+- [Cracking the coding interview](https://a.co/d/j0uJTfy) 
+- [Real-time rendering](https://www.realtimerendering.com/)
+- [Algorithms](https://en.algorithmica.org/hpc/)
+- [Philosophy of Software Design](https://web.stanford.edu/~ouster/cgi-bin/book.php)
+- [Graphics programming discord](https://discord.gg/graphicsprogramming)
+- [Graphics programming subreddit](https://www.reddit.com/r/GraphicsProgramming/)
+
+## ./cryptography-links
+- [libsodium](https://doc.libsodium.org/)
+- [OQS project](https://github.com/open-quantum-safe)
+- [fhe.org](https://fhe.org/resources/)
+- [homomorphicencryption.org](https://homomorphicencryption.org/)
+- [OpenFHE](https://www.openfhe.org/)
+- [Jeremy Kun](https://www.jeremykun.com/) 
+- [Monero](https://www.getmonero.org/)
+- [Gentry's thesis](https://crypto.stanford.edu/craig/craig-thesis.pdf) 
+- [Gentry's introductory essay into FHE](https://crypto.stanford.edu/craig/easy-fhe.pdf) 
+- [Christof Paar's lectures](https://www.youtube.com/playlist?list=PL2jrku-ebl3H50FiEPr4erSJiJHURM9BX)
+- [Understanding cryptography](https://www.cryptography-textbook.com/)
+- [Serious Cryptography](https://nostarch.com/serious-cryptography-2nd-edition) 
+- [BouncyCastle](https://www.bouncycastle.org/about/)
+- [cr.yp.to](https://cr.yp.to/)
+- [Soatok](https://soatok.blog/?s=crypto)
+
+## ./ai
+
+- [Make your own neural network](https://a.co/d/0dHmZUP)
+- [Machine learning in 100 pages](https://a.co/d/4MQcIKZ)
+- [Math for machine learning](https://a.co/d/7Oi6ZrV)
+- [LLMs as Simulators](https://generative.ink/posts/simulators/)
+- [A very unusual time period](https://youtu.be/3K25VPdbAjU?si=7NSLfCb6YpSQOoHO)
+- [ChatGPT is  a Simulacrum](https://blog.domenic.me/chatgpt-simulacrum/) 
+- [AI safety](https://aisafety.info/)
+- [AI alignment](https://aisafetyfundamentals.com/blog/alignment-introduction/)
+
+## ./general-literacy
+
+- [High-school Math](https://a.co/d/0qrdAgc)
+- [List of good math books](https://mathblog.com/mathematics-books/)
+- [List of good humanities books](https://www.jordanbpeterson.com/books/)
+- [Essay writing guide](https://jordanbpeterson.com/wp-content/uploads/2018/02/Essay_Writing_Guide.docx)
+- [Craft of writing effectively](https://www.youtube.com/watch?v=vtIzMaLkCaM)
+- [4chan reading list](https://lit.trainroll.xyz/wiki/Recommended_Reading/sub)
+
+## ./advice
+
+- [An idiot admires complexity, a genius admires simplicity](https://youtu.be/k0qmkQGqpM8?si=VmkUdxl2cNHORd5d)
+- Sometimes, [all you need is a function](https://x.com/ID_AA_Carmack/status/53512300451201024)
+- Be [succinct](https://www.socratic-method.com/quote-meanings/blaise-pascal-i-have-made-this-letter-longer-than-usual-only-because-i-have-not-had-the-time-to-make-it-shorter)
+- [Worse is better](https://www.dreamsongs.com/WorseIsBetter.html)
+
+## ./diabetes-advice
+I have type 1 diabetes, so this advice may not be applicable to other types.
+There are really only two ways of dealing with this disease: you can either eat
+whatever you want and not care too much about high blood sugars, or you can
+adhere to a strict keto diet and enjoy the stability that comes with it.  The
+truth is, your blood sugars will go wild the moment you eat something high in
+carbs (sometimes even low carb foods will throw it out of the loop).  Other
+times your body will simply say "fuck you" and do whatever it wants. It
+happens. No, it's not your fault. Many diabetics experience this---I also
+experience this.
+
+1. If you aren't on a pump, then use something *very* long-range for your basal (e.g.
+[Tresiba](https://www.drugs.com/tresiba.html)).
+2. Don't use Levemir.
+3. Exercise. No need to be an athlete, something as simple as walking helps a
+lot.
+4. Try to have a schedule. Personally this is very hard for me as I'm
+more of a spontaneous type of guy, but it helps tremendously.
+5. Get yourself
+a CGM. It will help you learn which kinds of food affect your blood sugar the
+most.
+6. Always tell people that you're a diabetic. Whether it's a date, or a
+professional meeting, or just a hang-out, it doesn't matter. There's always a
+chance that you may pass out from hypoglycemia, and it's important that someone
+knows you're diabetic and relays that to the paramedics. If you don't want to
+tell people, then at least wear a
+[wristband](https://shop.diabetes.org.uk/collections/wristbands-1).
+7. **DO NOT** listen to what those old type 2 diabetic hags say.  Often they are in
+denial of their disease and don't take care of themselves to begin with. Most
+of the time their advice doesn't apply to type 1 diabetics anyway, and usually
+it is based on either pseudoscience or gross misunderstanding of the scientific
+literature.
+8. **DO NOT** listen to people who claim to know what's best for
+you just because they have a friend/relative/child with diabetes. I can assure
+you, they know almost nothing. They have a bad case of
+[Dunning-Kruger](https://en.wikipedia.org/wiki/Dunning%E2%80%93Kruger_effect),
+and their advice is often terrible.
+9. Have quarterly visits to an
+endocrinologist. It may be hard to find a good one, but it's worth it.
+10.  Read the [Type 1 Diabetes Self-Care
+Manual](https://diabetes.org/living-with-diabetes/type-1/type-1-self-care-manual)
+from [ADA](https://diabetes.org/).
+11. Get vaccinated.
+12. Do not smoke.
+13.  Do not drink alcohol. Or at least eat something before/after to prevent
+hypoglycemia.
+14. Don't be a pessimist. Remember, insulin was only discovered
+in the last century, and for most of human history type 1 diabetes was a fatal
+disease.You are very lucky to be born in the modern age.  There are
+[signs](https://www.fda.gov/news-events/press-announcements/fda-approves-first-cellular-therapy-treat-patients-type-1-diabetes)
+that we will be able to cure it soon.
+
+There are a lot of charlatans out there who will claim that they can cure your
+diabetes---**DO NOT** listen to them. It's all bullshit. A *real*
+cure will be announced by organizations like the [ADA](https://diabetes.org/).
+
+## ./contact-me
+
+```
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+mDMEaV9PvRYJKwYBBAHaRw8BAQdAnTfCdqGUx7o3ptIOUuRmhDDYw4h0FWnC/Knd
+AShGjqC0HzB4ZGVhZGYxc2ggPDB4ZGVhZGYxc2hAdHV0YS5pbz6IlgQTFgoAPhYh
+BFsxzJhfKGJULW25wM9NqfOkXZ73BQJpX0+9AhsDBQkB4TOABQsJCAcCBhUKCQgL
+AgQWAgMBAh4BAheAAAoJEM9NqfOkXZ73zcUA/1Bh694biivjqFJ29RwlQTsadp97
+Ae1YyYIWrOmIIzl6AP9IuToQcC8JFXVw8fo4ADTI3dEz7Nz6Xy5nApo3RUosCLg4
+BGlfT70SCisGAQQBl1UBBQEBB0BIZ06EPPmaaVsP1/i+blMgQPkxv+BhH/+8/wLM
+IYuoWgMBCAeIfgQYFgoAJhYhBFsxzJhfKGJULW25wM9NqfOkXZ73BQJpX0+9AhsM
+BQkB4TOAAAoJEM9NqfOkXZ73EEUA/0TBuQ2vNcVTAEVtEQWL8rJURZjKhgwyC9p1
+giRpZcXOAQC5JofdFMNM2la1bJHccX3icB5sf5sIq71hfgZepJBbCQ==
+=fhYh
+-----END PGP PUBLIC KEY BLOCK-----
 ```
 
 """
 
-# Collection to display on home
-homeCollectionTitle = 'Posts'
-homeCollection = 'posts'
-
-# Lists parameters
 paginationSize = 100
 listSummaries = true
 listDateFormat = '2 Jan 2006'
 
 showFooter = true
 footerContent = """
-Licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/).
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 """
 
-# Breadcrumbs
 [params.breadcrumbs]
 enabled = true
 showCurrentPage = true
 home = "~"
 
-# Social icons
 [[params.social]]
 name = "github"
 url = "https://github.com/0xdeadf1sh"
@@ -75,8 +246,6 @@ url = "https://reddit.com/user/0xdeadf1sh"
 name = "x"
 url = "https://x.com/0xdeadf1sh"
 
-
-# Main menu pages
 [[params.menu]]
 name = "home"
 url = "/"
@@ -89,13 +258,12 @@ url = "/posts"
 name = "stories"
 url = "/stories"
 
-# Syntax highlight on code blocks
 [markup]
-[markup.highlight]
-noClasses = false
-lineNos = true
-lineNumbersInTable = false
-style = 'monokai'
+  [markup.highlight]
+    noClasses = false
+    lineNos = true
+    lineNumbersInTable = false
+    style = 'github-dark'
 
 [caches]
   [caches.images]
