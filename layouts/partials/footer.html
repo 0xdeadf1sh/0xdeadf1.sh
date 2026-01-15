@@ -1,7 +1,9 @@
 {{ $showFooter := default true .Site.Params.showFooter }}
+
 {{ if $showFooter }}
     {{/* Footer start hook */}}
     {{ partial "functions/get_hook.html" (dict "hook" "footer_start" "context" .) }}
+
 
     {{ if not .Site.Params.footerContent }}
     <p>Powered by
@@ -10,10 +12,15 @@
         <a href="https://github.com/tomfran/typo">tomfran/typo</a>
     </p>
     {{ end }}
+
     
     {{ with .Site.Params.footerContent }}
     <p>{{ . | markdownify }}</p>
     {{ end }}
+
+
 {{ end }}
+
+
 <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "573d419e6228428e91497ea835107a93"}'></script>
 <script defer src='bubbles.js'></script>
