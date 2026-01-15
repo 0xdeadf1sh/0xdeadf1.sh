@@ -13,8 +13,10 @@ theme = 'dark'
 colorPalette = 'eink'
 hideHeader = true
 
-homeIntroTitle = './about-me'
+homeIntroTitle = ''
 homeIntroContent = """
+
+## ./about-me
 
 Computer programmer.
 
@@ -226,7 +228,7 @@ listDateFormat = '2 Jan 2006'
 
 showFooter = true
 footerContent = """
-[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+Licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 """
 
 [params.breadcrumbs]
