@@ -12,6 +12,7 @@ description = "low-level/high-performance/graphics/embedded/cryptography program
 theme = 'dark'
 colorPalette = 'eink'
 hideHeader = true
+faviconPath = '/'
 
 homeIntroTitle = ''
 homeIntroContent = """
