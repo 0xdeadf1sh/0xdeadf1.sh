@@ -67,20 +67,44 @@ class D3Logger {
 //////////////////////////////// SHADERS //////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 const D3_SHADER_BASIC = `
+    struct VertexInput {
+        @builtin(vertex_index) vertexIndex: u32,
+    };
+
+    struct VertexOutput {
+        @builtin(position) position: vec4f,
+        @location(0) color: vec4f,
+    };
+
     @vertex
-    fn vertex_main(@builtin(vertex_index) vertexIndex: u32) -> @builtin(position) vec4f {
-        let pos = array(
+    fn vertex_main(input: VertexInput) -> VertexOutput {
+        let positions = array(
             vec2f( 0.0f,  0.5f),
             vec2f(-0.5f, -0.5f),
             vec2f( 0.5f, -0.5f)
         );
 
-        return vec4f(pos[vertexIndex], 0.0f, 1.0f);
+        let colors = array(
+            vec3f(1.0f, 0.0f, 0.0f),
+            vec3f(0.0f, 1.0f, 0.0f),
+            vec3f(0.0f, 0.0f, 1.0f)
+        );
+
+        var output: VertexOutput;
+        output.position = vec4f(positions[input.vertexIndex], 0.0f, 1.0f);
+        output.color = vec4f(colors[input.vertexIndex], 1.0f);
+        return output;
     }
 
+    struct FragmentOutput {
+        @location(0) color: vec4f,
+    };
+
     @fragment
-    fn fragment_main() -> @location(0) vec4f {
-        return vec4f(1.0f, 0.5f, 0.25f, 1.0f);
+    fn fragment_main(input: VertexOutput) -> FragmentOutput {
+        var output: FragmentOutput;
+        output.color = input.color;
+        return output;
     }
     `;
 
@@ -95,14 +119,11 @@ class D3Renderer {
     private readonly m_versionPatch: number = 0;
 
     ///////////////////////////////////////////////////////////////////////////
-    private m_width: number                 = 0;
-    private m_height: number                = 0;
-
-    ///////////////////////////////////////////////////////////////////////////
     private m_lastTime: number              = 0;
 
     ///////////////////////////////////////////////////////////////////////////
-    public static async create(canvasId: string): Promise<D3Renderer> {
+    public static async create(canvasId: string,
+                               deviceLostCallback: (reason: GPUDeviceLostReason) => void): Promise<D3Renderer> {
         if (!navigator.gpu) {
             throw new D3Exception("D3Renderer",
                                   "create",
@@ -147,6 +168,10 @@ class D3Renderer {
                                   "requestDevice() failed");
         }
 
+        device.lost.then(info => {
+            deviceLostCallback(info.reason);
+        });
+
         const canvas = document.getElementById(canvasId);
         if (!canvas) {
             throw new D3Exception("D3Renderer",
@@ -189,11 +214,7 @@ class D3Renderer {
                         private m_adapter: GPUAdapter,
                         private m_device: GPUDevice,
                         private m_canvas: HTMLCanvasElement,
-                        private m_ctx: GPUCanvasContext) {
-
-        this.resizeCanvas();
-        this.resizeRenderToCanvas();
-    }
+                        private m_ctx: GPUCanvasContext) { }
 
     ///////////////////////////////////////////////////////////////////////////
     public async createShaderModule(label: string,
@@ -275,6 +296,21 @@ class D3Renderer {
     }
 
     ///////////////////////////////////////////////////////////////////////////
+    public createBuffer(label: string,
+                        size: number,
+                        usage: GPUBufferUsageFlags,
+                        mappedAtCreation: boolean): GPUBuffer {
+        const desc: GPUBufferDescriptor = {
+            label,
+            size,
+            usage,
+            mappedAtCreation,
+        };
+
+        return this.m_device.createBuffer(desc);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
     public createCmdEncoder(label: string): GPUCommandEncoder {
         const desc: GPUCommandEncoderDescriptor = {
             label,
@@ -302,22 +338,31 @@ class D3Renderer {
     }
 
     ///////////////////////////////////////////////////////////////////////////
-    public resizeRenderToCanvas(): void {
-        if (this.m_width !== this.m_canvas.width ||
-            this.m_height !== this.m_canvas.height) {
-
-            this.m_width = this.m_canvas.width;
-            this.m_height = this.m_canvas.height;
-        }
-    }
-
-    ///////////////////////////////////////////////////////////////////////////
-    public resizeCanvas(): void {
+    public resizeCanvas(callback: (w: number, h: number) => void): void {
         if (this.m_canvas.width !== this.m_canvas.clientWidth ||
             this.m_canvas.height !== this.m_canvas.clientHeight) {
 
+            let isCanvasSizeValid = true;
+
             this.m_canvas.width = this.m_canvas.clientWidth;
+            if (this.m_canvas.width < 1 ||
+                this.m_canvas.width > this.m_device.limits.maxTextureDimension2D) {
+
+                D3Logger.warn(`Canvas size is out of range: ${this.m_canvas.width}`);
+                isCanvasSizeValid = false;
+            }
+
             this.m_canvas.height = this.m_canvas.clientHeight;
+            if (this.m_canvas.height < 1 ||
+                this.m_canvas.height > this.m_device.limits.maxTextureDimension2D) {
+                D3Logger.warn(`Canvas size is out of range: ${this.m_canvas.height}`);
+
+                isCanvasSizeValid = false;
+            }
+
+            if (isCanvasSizeValid) {
+                callback(this.m_canvas.width, this.m_canvas.height);
+            }
         }
     }
 
@@ -354,8 +399,21 @@ class D3Renderer {
 ///////////////////////////////////////////////////////////////////////////
 async function main() {
     try {
-        const renderer = await D3Renderer.create("d3render");
-        renderer.resizeCanvas();
+
+        const renderer = await D3Renderer.create("d3render", reason => {
+            switch (reason) {
+                case "destroyed":
+                    showPrettyException(new D3Exception("(none)",
+                                                        "(deviceLostCallback)",
+                                                        "Device intentionally lost"));
+                    break;
+                case "unknown":
+                    showPrettyException(new D3Exception("(none)",
+                                                        "(deviceLostCallback)",
+                                                        "Please reload the page"));
+                    break;
+            }
+        });
 
         const canvasFormat = renderer.getCanvasTextureFormat();
 
@@ -370,6 +428,10 @@ async function main() {
         let totalMS     = 0.0;
 
         renderer.render(dt => {
+
+            renderer.resizeCanvas((w: number, h: number) => {
+                D3Logger.info(`Framebuffers resized to ${w}x${h}`);
+            });
 
             totalMS += dt * 1e-3;
 

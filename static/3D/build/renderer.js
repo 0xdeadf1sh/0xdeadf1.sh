@@ -42,20 +42,44 @@ class D3Logger {
 }
 ;
 const D3_SHADER_BASIC = `
+    struct VertexInput {
+        @builtin(vertex_index) vertexIndex: u32,
+    };
+
+    struct VertexOutput {
+        @builtin(position) position: vec4f,
+        @location(0) color: vec4f,
+    };
+
     @vertex
-    fn vertex_main(@builtin(vertex_index) vertexIndex: u32) -> @builtin(position) vec4f {
-        let pos = array(
+    fn vertex_main(input: VertexInput) -> VertexOutput {
+        let positions = array(
             vec2f( 0.0f,  0.5f),
             vec2f(-0.5f, -0.5f),
             vec2f( 0.5f, -0.5f)
         );
 
-        return vec4f(pos[vertexIndex], 0.0f, 1.0f);
+        let colors = array(
+            vec3f(1.0f, 0.0f, 0.0f),
+            vec3f(0.0f, 1.0f, 0.0f),
+            vec3f(0.0f, 0.0f, 1.0f)
+        );
+
+        var output: VertexOutput;
+        output.position = vec4f(positions[input.vertexIndex], 0.0f, 1.0f);
+        output.color = vec4f(colors[input.vertexIndex], 1.0f);
+        return output;
     }
 
+    struct FragmentOutput {
+        @location(0) color: vec4f,
+    };
+
     @fragment
-    fn fragment_main() -> @location(0) vec4f {
-        return vec4f(1.0f, 0.5f, 0.25f, 1.0f);
+    fn fragment_main(input: VertexOutput) -> FragmentOutput {
+        var output: FragmentOutput;
+        output.color = input.color;
+        return output;
     }
     `;
 class D3Renderer {
@@ -67,10 +91,8 @@ class D3Renderer {
     m_versionMajor = 0;
     m_versionMinor = 1;
     m_versionPatch = 0;
-    m_width = 0;
-    m_height = 0;
     m_lastTime = 0;
-    static async create(canvasId) {
+    static async create(canvasId, deviceLostCallback) {
         if (!navigator.gpu) {
             throw new D3Exception("D3Renderer", "create", "WebGPU not supported");
         }
@@ -101,6 +123,9 @@ class D3Renderer {
         if (!device) {
             throw new D3Exception("D3Renderer", "create", "requestDevice() failed");
         }
+        device.lost.then(info => {
+            deviceLostCallback(info.reason);
+        });
         const canvas = document.getElementById(canvasId);
         if (!canvas) {
             throw new D3Exception("D3Renderer", "create", `canvas id=${canvasId} not found`);
@@ -130,8 +155,6 @@ class D3Renderer {
         this.m_device = m_device;
         this.m_canvas = m_canvas;
         this.m_ctx = m_ctx;
-        this.resizeCanvas();
-        this.resizeRenderToCanvas();
     }
     async createShaderModule(label, shaderSrc) {
         const desc = {
@@ -195,6 +218,15 @@ class D3Renderer {
         };
         return this.m_device.createRenderPipelineAsync(desc);
     }
+    createBuffer(label, size, usage, mappedAtCreation) {
+        const desc = {
+            label,
+            size,
+            usage,
+            mappedAtCreation,
+        };
+        return this.m_device.createBuffer(desc);
+    }
     createCmdEncoder(label) {
         const desc = {
             label,
@@ -214,18 +246,25 @@ class D3Renderer {
         };
         requestAnimationFrame(renderInternal);
     }
-    resizeRenderToCanvas() {
-        if (this.m_width !== this.m_canvas.width ||
-            this.m_height !== this.m_canvas.height) {
-            this.m_width = this.m_canvas.width;
-            this.m_height = this.m_canvas.height;
-        }
-    }
-    resizeCanvas() {
+    resizeCanvas(callback) {
         if (this.m_canvas.width !== this.m_canvas.clientWidth ||
             this.m_canvas.height !== this.m_canvas.clientHeight) {
+            let isCanvasSizeValid = true;
             this.m_canvas.width = this.m_canvas.clientWidth;
+            if (this.m_canvas.width < 1 ||
+                this.m_canvas.width > this.m_device.limits.maxTextureDimension2D) {
+                D3Logger.warn(`Canvas size is out of range: ${this.m_canvas.width}`);
+                isCanvasSizeValid = false;
+            }
             this.m_canvas.height = this.m_canvas.clientHeight;
+            if (this.m_canvas.height < 1 ||
+                this.m_canvas.height > this.m_device.limits.maxTextureDimension2D) {
+                D3Logger.warn(`Canvas size is out of range: ${this.m_canvas.height}`);
+                isCanvasSizeValid = false;
+            }
+            if (isCanvasSizeValid) {
+                callback(this.m_canvas.width, this.m_canvas.height);
+            }
         }
     }
     printWgslInfo() {
@@ -251,8 +290,16 @@ class D3Renderer {
 ;
 async function main() {
     try {
-        const renderer = await D3Renderer.create("d3render");
-        renderer.resizeCanvas();
+        const renderer = await D3Renderer.create("d3render", reason => {
+            switch (reason) {
+                case "destroyed":
+                    showPrettyException(new D3Exception("(none)", "(deviceLostCallback)", "Device intentionally lost"));
+                    break;
+                case "unknown":
+                    showPrettyException(new D3Exception("(none)", "(deviceLostCallback)", "Please reload the page"));
+                    break;
+            }
+        });
         const canvasFormat = renderer.getCanvasTextureFormat();
         const basicModule = await renderer.createShaderModule("D3_SHADER_BASIC", D3_SHADER_BASIC);
         const basicPipeline = await renderer.createRenderPipeline("D3_SHADER_BASIC_PIPELINE", basicModule, [{ format: canvasFormat }]);
@@ -261,6 +308,9 @@ async function main() {
         let clearBlue = 0.0;
         let totalMS = 0.0;
         renderer.render(dt => {
+            renderer.resizeCanvas((w, h) => {
+                D3Logger.info(`Framebuffers resized to ${w}x${h}`);
+            });
             totalMS += dt * 1e-3;
             clearRed = (Math.sin(totalMS) + 1.0) * 0.1;
             clearGreen = (Math.cos(totalMS) + 1.0) * 0.1;
