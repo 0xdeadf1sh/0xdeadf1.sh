@@ -1,3 +1,4 @@
+import * as WGPUtils from "webgpu-utils";
 class D3Exception {
     m_class;
     m_function;
@@ -51,6 +52,12 @@ const D3_SHADER_BASIC = `
         @location(0) color: vec4f,
     };
 
+    struct Transform {
+        offset: vec4f,
+    };
+
+    @group(0) @binding(0) var<uniform> transform: Transform;
+
     @vertex
     fn vertex_main(input: VertexInput) -> VertexOutput {
         let positions = array(
@@ -66,7 +73,7 @@ const D3_SHADER_BASIC = `
         );
 
         var output: VertexOutput;
-        output.position = vec4f(positions[input.vertexIndex], 0.0f, 1.0f);
+        output.position = vec4f(positions[input.vertexIndex], 0.0f, 1.0f) + transform.offset;
         output.color = vec4f(colors[input.vertexIndex], 1.0f);
         return output;
     }
@@ -227,6 +234,27 @@ class D3Renderer {
         };
         return this.m_device.createBuffer(desc);
     }
+    createBindGroup(label, bindGroupIndex, pipeline, ubos) {
+        const entries = [];
+        for (let i = 0; i < ubos.length; ++i) {
+            const ubo = ubos[i];
+            if (!ubo) {
+                throw new D3Exception("D3Renderer", "createBindGroup", `ubos[${i}] is null`);
+            }
+            entries.push({
+                binding: i,
+                resource: {
+                    buffer: ubo,
+                }
+            });
+        }
+        const desc = {
+            label,
+            layout: pipeline.getBindGroupLayout(bindGroupIndex),
+            entries,
+        };
+        return this.m_device.createBindGroup(desc);
+    }
     createCmdEncoder(label) {
         const desc = {
             label,
@@ -267,6 +295,9 @@ class D3Renderer {
             }
         }
     }
+    writeBuffer(buffer, offset, data) {
+        this.m_device.queue.writeBuffer(buffer, offset, data);
+    }
     printWgslInfo() {
         for (const feature of this.m_gpu.wgslLanguageFeatures) {
             D3Logger.info(feature);
@@ -303,6 +334,10 @@ async function main() {
         const canvasFormat = renderer.getCanvasTextureFormat();
         const basicModule = await renderer.createShaderModule("D3_SHADER_BASIC", D3_SHADER_BASIC);
         const basicPipeline = await renderer.createRenderPipeline("D3_SHADER_BASIC_PIPELINE", basicModule, [{ format: canvasFormat }]);
+        const defs = WGPUtils.makeShaderDataDefinitions(D3_SHADER_BASIC);
+        const transformUBOData = WGPUtils.makeStructuredView(defs.uniforms["transform"]);
+        const transformUBO = renderer.createBuffer("transformUBO", transformUBOData.arrayBuffer.byteLength, GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST, false);
+        const bindGroup = renderer.createBindGroup("transform bind group", 0, basicPipeline, [transformUBO]);
         let clearRed = 0.0;
         let clearGreen = 0.0;
         let clearBlue = 0.0;
@@ -326,7 +361,12 @@ async function main() {
             };
             const cmdEncoder = renderer.createCmdEncoder("D3CmdEncoder");
             const pass = cmdEncoder.beginRenderPass(renderpassDesc);
+            transformUBOData.set({
+                offset: [-0.5, 0.0, 0.0, 0.0],
+            });
+            renderer.writeBuffer(transformUBO, 0, transformUBOData.arrayBuffer);
             pass.setPipeline(basicPipeline);
+            pass.setBindGroup(0, bindGroup);
             pass.draw(3);
             pass.end();
             const cmdBuffer = cmdEncoder.finish();
@@ -354,5 +394,4 @@ function showPrettyException(e) {
     }
 }
 main();
-export {};
 //# sourceMappingURL=renderer.js.map

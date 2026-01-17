@@ -5,7 +5,9 @@
 
     "module": "nodenext",
     "target": "esnext",
-    "types": ["@webgpu/types"],
+    "types": [
+        "@webgpu/types"
+    ],
 
     "sourceMap": true,
     "declaration": true,

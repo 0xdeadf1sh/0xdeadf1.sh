@@ -2,6 +2,8 @@
 //////////// 3D: WebGPU Renderer for the Web by 0xdeadf1.sh ///////////////
 ///////////////////////////////////////////////////////////////////////////
 
+import * as WGPUtils from "webgpu-utils";
+
 ///////////////////////////////////////////////////////////////////////////
 /////////////////////// CUSTOM EXCEPTION OBJECT ///////////////////////////
 ///////////////////////////////////////////////////////////////////////////
@@ -76,6 +78,12 @@ const D3_SHADER_BASIC = `
         @location(0) color: vec4f,
     };
 
+    struct Transform {
+        offset: vec4f,
+    };
+
+    @group(0) @binding(0) var<uniform> transform: Transform;
+
     @vertex
     fn vertex_main(input: VertexInput) -> VertexOutput {
         let positions = array(
@@ -91,7 +99,7 @@ const D3_SHADER_BASIC = `
         );
 
         var output: VertexOutput;
-        output.position = vec4f(positions[input.vertexIndex], 0.0f, 1.0f);
+        output.position = vec4f(positions[input.vertexIndex], 0.0f, 1.0f) + transform.offset;
         output.color = vec4f(colors[input.vertexIndex], 1.0f);
         return output;
     }
@@ -311,6 +319,39 @@ class D3Renderer {
     }
 
     ///////////////////////////////////////////////////////////////////////////
+    public createBindGroup(label: string,
+                           bindGroupIndex: number,
+                           pipeline: GPUPipelineBase,
+                           ubos: Array<GPUBuffer>): GPUBindGroup {
+
+        const entries: Array<GPUBindGroupEntry> = [];
+        for (let i = 0; i < ubos.length; ++i) {
+
+            const ubo = ubos[i];
+            if (!ubo) {
+                throw new D3Exception("D3Renderer",
+                                      "createBindGroup",
+                                      `ubos[${i}] is null`);
+            }
+
+            entries.push({
+                binding: i,
+                resource: {
+                    buffer: ubo,
+                }
+            });
+        }
+
+        const desc: GPUBindGroupDescriptor = {
+            label,
+            layout: pipeline.getBindGroupLayout(bindGroupIndex),
+            entries,
+        };
+
+        return this.m_device.createBindGroup(desc);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
     public createCmdEncoder(label: string): GPUCommandEncoder {
         const desc: GPUCommandEncoderDescriptor = {
             label,
@@ -364,6 +405,13 @@ class D3Renderer {
                 callback(this.m_canvas.width, this.m_canvas.height);
             }
         }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    public writeBuffer(buffer: GPUBuffer,
+                       offset: number,
+                       data: ArrayBuffer): void {
+        this.m_device.queue.writeBuffer(buffer, offset, data);
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -422,6 +470,20 @@ async function main() {
                                                                   basicModule,
                                                                   [{ format: canvasFormat }]);
 
+
+        const defs = WGPUtils.makeShaderDataDefinitions(D3_SHADER_BASIC);
+        const transformUBOData = WGPUtils.makeStructuredView(defs.uniforms["transform"] as WGPUtils.VariableDefinition);
+
+        const transformUBO = renderer.createBuffer("transformUBO",
+                                                   transformUBOData.arrayBuffer.byteLength,
+                                                   GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+                                                   false);
+
+        const bindGroup = renderer.createBindGroup("transform bind group",
+                                                   0,
+                                                   basicPipeline,
+                                                   [ transformUBO ]);
+
         let clearRed    = 0.0;
         let clearGreen  = 0.0;
         let clearBlue   = 0.0;
@@ -453,7 +515,14 @@ async function main() {
             const cmdEncoder = renderer.createCmdEncoder("D3CmdEncoder");
             const pass = cmdEncoder.beginRenderPass(renderpassDesc);
 
+            transformUBOData.set({
+                offset: [ -0.5, 0.0, 0.0, 0.0 ],
+            });
+
+            renderer.writeBuffer(transformUBO, 0, transformUBOData.arrayBuffer);
+
             pass.setPipeline(basicPipeline);
+            pass.setBindGroup(0, bindGroup);
             pass.draw(3);
             pass.end();
 

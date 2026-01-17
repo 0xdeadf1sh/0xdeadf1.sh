@@ -51,7 +51,15 @@
 </head>
 <body>
     <canvas id='d3render'></canvas>
-    <script type='module' src='./build/renderer.js'></script>
     <pre id='d3exception'></pre>
+
+    <script type="importmap">
+    {
+      "imports": {
+        "webgpu-utils": "./node_modules/webgpu-utils/dist/2.x/webgpu-utils.module.min.js"
+      }
+    }    
+    </script>
+    <script type='module' src='./build/renderer.js'></script>
 </body>
 </html>
