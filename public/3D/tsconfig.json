@@ -1,0 +1,47 @@
+{
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./build",
+
+    "module": "nodenext",
+    "target": "esnext",
+    "types": ["@webgpu/types"],
+
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+    "noEmitOnError": true,
+    "removeComments": true,
+    "incremental": true,
+
+    "exactOptionalPropertyTypes": true,
+
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+
+    "noUncheckedIndexedAccess": true,
+    "noUncheckedIndexedAccess": true,
+    "noFallthroughCasesInSwitch": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedSideEffectImports": true,
+
+    "allowJs": true,
+    "checkJs": true,
+
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+
+    "strict": true,
+    "alwaysStrict": true,
+
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "skipLibCheck": true
+  }
+}
