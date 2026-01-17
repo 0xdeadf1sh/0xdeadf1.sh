@@ -26,6 +26,65 @@ class D3Exception {
 }
 
 ///////////////////////////////////////////////////////////////////////////
+//////////////////////// CUSTOM LOGGER OBJECT /////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+class D3Logger {
+
+    ///////////////////////////////////////////////////////////////////////////
+    private constructor() {}
+
+    ///////////////////////////////////////////////////////////////////////////
+    private static getTimeString(): string {
+        const now = new Date();
+        const timeString = `[D3Log] ` +
+                           `[${now.getHours()}` +
+                           `:${now.getMinutes()}` +
+                           `:${now.getSeconds()}` +
+                           `:${now.getMilliseconds()}]`;
+        return timeString;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    public static info(msg: string) {
+        const timeString = D3Logger.getTimeString();
+        console.log(`${timeString} : ${msg}`);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    public static warn(msg: string) {
+        const timeString = D3Logger.getTimeString();
+        console.warn(`${timeString} : ${msg}`);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    public static error(msg: string) {
+        const timeString = D3Logger.getTimeString();
+        console.error(`${timeString} : ${msg}`);
+    }
+};
+
+///////////////////////////////////////////////////////////////////////////
+//////////////////////////////// SHADERS //////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+const D3_SHADER_BASIC = `
+    @vertex
+    fn vertex_main(@builtin(vertex_index) vertexIndex: u32) -> @builtin(position) vec4f {
+        let pos = array(
+            vec2f( 0.0f,  0.5f),
+            vec2f(-0.5f, -0.5f),
+            vec2f( 0.5f, -0.5f)
+        );
+
+        return vec4f(pos[vertexIndex], 0.0f, 1.0f);
+    }
+
+    @fragment
+    fn fragment_main() -> @location(0) vec4f {
+        return vec4f(1.0f, 0.5f, 0.25f, 1.0f);
+    }
+    `;
+
+///////////////////////////////////////////////////////////////////////////
 /////////////////////////////// RENDERER //////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 class D3Renderer {
@@ -40,7 +99,54 @@ class D3Renderer {
     private m_height: number                = 0;
 
     ///////////////////////////////////////////////////////////////////////////
+    private m_lastTime: number              = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
     public static async create(canvasId: string): Promise<D3Renderer> {
+        if (!navigator.gpu) {
+            throw new D3Exception("D3Renderer",
+                                  "create",
+                                  "WebGPU not supported");
+        }
+
+        const adapterOptions: GPURequestAdapterOptions = {
+            featureLevel: "core",
+            forceFallbackAdapter: false,
+            powerPreference: "high-performance",
+            xrCompatible: false
+        };
+
+        const adapter = await navigator.gpu.requestAdapter(adapterOptions);
+        if (!adapter) {
+            throw new D3Exception("D3Renderer",
+                                  "create",
+                                  "requestAdapter() failed");
+        }
+
+        adapter.info.device && D3Logger.info(`Device: ${adapter.info.device}`);
+        adapter.info.vendor && D3Logger.info(`Vendor: ${adapter.info.vendor}`);
+        adapter.info.description && D3Logger.info(`Description: ${adapter.info.description}`);
+        adapter.info.architecture && D3Logger.info(`Architecture: ${adapter.info.architecture}`);
+
+        D3Logger.info(`Is fallback? : ${adapter.info.isFallbackAdapter}`);
+
+        const defaultQueueDescriptor: GPUObjectDescriptorBase = {
+            label: "D3Queue"
+        };
+
+        const deviceDescriptor: GPUDeviceDescriptor = {
+            defaultQueue: defaultQueueDescriptor,
+            label: "D3Device",
+            requiredFeatures: [],
+        };
+
+        const device = await adapter.requestDevice(deviceDescriptor);
+        if (!device) {
+            throw new D3Exception("D3Renderer",
+                                  "create",
+                                  "requestDevice() failed");
+        }
+
         const canvas = document.getElementById(canvasId);
         if (!canvas) {
             throw new D3Exception("D3Renderer",
@@ -48,33 +154,151 @@ class D3Renderer {
                                   `canvas id=${canvasId} not found`);
         }
 
-        if (!navigator.gpu) {
+        const ctx = (canvas as HTMLCanvasElement).getContext("webgpu");
+        if (!ctx) {
             throw new D3Exception("D3Renderer",
                                   "create",
-                                  "WebGPU not supported");
+                                  "getContext('webgpu') failed");
         }
 
-        const adapter = await navigator.gpu.requestAdapter();
-        if (!adapter) {
-            throw new D3Exception("D3Renderer",
-                                  "create",
-                                  "requestAdapter() failed");
-        }
+        const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
+        D3Logger.info(`Preferred canvas format: ${presentationFormat.toString()}`);
 
-        const device = await adapter.requestDevice();
-        if (!device) {
-            throw new D3Exception("D3Renderer",
-                                  "create",
-                                  "requestDevice() failed");
-        }
+        const config: GPUCanvasConfiguration = {
+            device,
+            format: presentationFormat,
+            usage: GPUTextureUsage.RENDER_ATTACHMENT,
+            alphaMode: "opaque",
+            toneMapping: {
+                "mode": "standard",
+            },
+            colorSpace: "srgb",
+        };
 
-        return new D3Renderer(canvas as HTMLCanvasElement);
+        ctx.configure(config);
+
+        return new D3Renderer(navigator.gpu,
+                              adapter,
+                              device,
+                              canvas as HTMLCanvasElement,
+                              ctx);
     }
 
     ///////////////////////////////////////////////////////////////////////////
-    private constructor(private m_canvas: HTMLCanvasElement) {
+    private constructor(private m_gpu: GPU,
+                        private m_adapter: GPUAdapter,
+                        private m_device: GPUDevice,
+                        private m_canvas: HTMLCanvasElement,
+                        private m_ctx: GPUCanvasContext) {
+
         this.resizeCanvas();
         this.resizeRenderToCanvas();
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    public async createShaderModule(label: string,
+                                    shaderSrc: string): Promise<GPUShaderModule> {
+        const desc: GPUShaderModuleDescriptor = {
+            label,
+            code: shaderSrc,
+            compilationHints: [],
+        };
+
+        const shaderModule = this.m_device.createShaderModule(desc);
+        const compInfo = await shaderModule.getCompilationInfo();
+        for (const info of compInfo.messages) {
+            switch (info.type) {
+                case "info":
+                    D3Logger.info(`\n` +
+                                  `LineNo: ${info.lineNum}\n` +
+                                  `LinePos: ${info.linePos}\n` +
+                                  `Offset: : ${info.offset}\n` +
+                                  `Length: ${info.length}\n` +
+                                  `${info.message}`);
+                   break;
+                case "warning":
+                    D3Logger.warn(`\n` +
+                                  `LineNo: ${info.lineNum}\n` +
+                                  `LinePos: ${info.linePos}\n` +
+                                  `Offset: : ${info.offset}\n` +
+                                  `Length: ${info.length}\n` +
+                                  `${info.message}`);
+                    break;
+                case "error":
+                    throw new D3Exception("D3Renderer",
+                                          "createShaderModule",
+                                          `\n` +
+                                          `LineNo: ${info.lineNum}\n` +
+                                          `LinePos: ${info.linePos}\n` +
+                                          `Offset: : ${info.offset}\n` +
+                                          `Length: ${info.length}\n` +
+                                          `${info.message}`);
+            }
+        }
+
+        return shaderModule;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    public getCanvasTextureFormat(): GPUTextureFormat {
+        return this.m_gpu.getPreferredCanvasFormat();
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    public getCanvasTextureView(label: string): GPUTextureView {
+        const desc: GPUTextureViewDescriptor = {
+            label,
+        };
+        return this.m_ctx.getCurrentTexture().createView(desc);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    public async createRenderPipeline(label: string,
+                                      shaderModule: GPUShaderModule,
+                                      targets: Iterable<GPUColorTargetState>): Promise<GPURenderPipeline> {
+
+        const desc: GPURenderPipelineDescriptor = {
+            label,
+            layout: "auto",
+            vertex: {
+                module: shaderModule,
+                entryPoint: "vertex_main",
+            },
+            fragment: {
+                module: shaderModule,
+                entryPoint: "fragment_main",
+                targets,
+            },
+        };
+
+        return this.m_device.createRenderPipelineAsync(desc);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    public createCmdEncoder(label: string): GPUCommandEncoder {
+        const desc: GPUCommandEncoderDescriptor = {
+            label,
+        };
+        return this.m_device.createCommandEncoder(desc);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    public submitCommandBuffers(buffers: Iterable<GPUCommandBuffer>): void {
+        this.m_device.queue.submit(buffers);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    public render(callback: (dt: number) => void): void {
+        const renderInternal = () => {
+            const now = performance.now();
+            const dt = this.m_lastTime ? (performance.now() - this.m_lastTime) : 0.0;
+            this.m_lastTime = now;
+
+            callback(dt);
+
+            requestAnimationFrame(renderInternal);
+        };
+        requestAnimationFrame(renderInternal);
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -98,6 +322,26 @@ class D3Renderer {
     }
 
     ///////////////////////////////////////////////////////////////////////////
+    public printWgslInfo(): void {
+        for (const feature of this.m_gpu.wgslLanguageFeatures) {
+            D3Logger.info(feature);
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    public printAdapterInfo(): void {
+        D3Logger.info(`Device: ${this.m_adapter.info.device}`);
+        D3Logger.info(`Vendor: ${this.m_adapter.info.vendor}`);
+        D3Logger.info(`Description: ${this.m_adapter.info.description}`);
+        D3Logger.info(`Architecture: ${this.m_adapter.info.architecture}`);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    public getCanvasConfiguration(): GPUCanvasConfigurationOut | null {
+        return this.m_ctx.getConfiguration();
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
     public toString(): string {
         return `D3Renderer version: ${this.m_versionMajor}.` +
                                    `${this.m_versionMinor}.` +
@@ -109,8 +353,55 @@ class D3Renderer {
 //////////////////////////////// MAIN /////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 async function main() {
-    const renderer = await D3Renderer.create("d3render");
-    console.log(renderer.toString());
+    try {
+        const renderer = await D3Renderer.create("d3render");
+        renderer.resizeCanvas();
+
+        const canvasFormat = renderer.getCanvasTextureFormat();
+
+        const basicModule = await renderer.createShaderModule("D3_SHADER_BASIC", D3_SHADER_BASIC);
+        const basicPipeline = await renderer.createRenderPipeline("D3_SHADER_BASIC_PIPELINE",
+                                                                  basicModule,
+                                                                  [{ format: canvasFormat }]);
+
+        let clearRed    = 0.0;
+        let clearGreen  = 0.0;
+        let clearBlue   = 0.0;
+        let totalMS     = 0.0;
+
+        renderer.render(dt => {
+
+            totalMS += dt * 1e-3;
+
+            clearRed = (Math.sin(totalMS) + 1.0) * 0.1;
+            clearGreen = (Math.cos(totalMS) + 1.0) * 0.1;
+
+            const colorAttachment: GPURenderPassColorAttachment = {
+                view: renderer.getCanvasTextureView("D3CanvasTextureView"),
+                clearValue: [ clearRed, clearGreen, clearBlue, 1.0 ],
+                loadOp: "clear",
+                storeOp: "store",
+            };
+
+            const renderpassDesc: GPURenderPassDescriptor = {
+                label: "D3RenderpassDesc",
+                colorAttachments: [ colorAttachment ],
+            };
+
+            const cmdEncoder = renderer.createCmdEncoder("D3CmdEncoder");
+            const pass = cmdEncoder.beginRenderPass(renderpassDesc);
+
+            pass.setPipeline(basicPipeline);
+            pass.draw(3);
+            pass.end();
+
+            const cmdBuffer = cmdEncoder.finish();
+            renderer.submitCommandBuffers([ cmdBuffer ]);
+        });
+    }
+    catch (e) {
+        showPrettyException(e);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -123,9 +414,7 @@ function showPrettyException(e: unknown): void {
     }
     else if (e instanceof D3Exception) {
         exDiv.style.display = "block";
-        exDiv.innerHTML = `============================================= <br>` +
-                          `<span id='d3exception'>D3Exception</span>` +
-                          `============================================= <br><br>` +
+        exDiv.innerHTML = `<span id='d3exception'>!!! D3Exception !!!</span>` +
                           `Class: ${e.getClass()} <br>` + 
                           `Function: ${e.getFunction()} <br>` +
                           `Message: ${e.getMessage()}`;
@@ -138,9 +427,4 @@ function showPrettyException(e: unknown): void {
 ///////////////////////////////////////////////////////////////////////////
 /////////////////////////////// ENTRY /////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
-try {
-    await main();
-}
-catch (e) {
-    showPrettyException(e);
-}
+main();

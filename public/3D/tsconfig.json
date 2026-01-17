@@ -21,8 +21,8 @@
     "noImplicitReturns": true,
     "noImplicitOverride": true,
 
-    "noUnusedLocals": true,
     "noUnusedParameters": true,
+    "noUnusedLocals": true,
 
     "noUncheckedIndexedAccess": true,
     "noUncheckedIndexedAccess": true,
