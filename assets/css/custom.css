@@ -17,3 +17,7 @@
 * {
     text-shadow: 0 0 4px var(--content-primary);
 }
+
+img {
+    padding: 20px;
+}

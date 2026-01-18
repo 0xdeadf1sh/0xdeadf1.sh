@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Webgpu on 0xdeadf1.sh</title>
+    <link>http://localhost:1313/tags/webgpu/</link>
+    <description>Recent content in Webgpu on 0xdeadf1.sh</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 18 Jan 2026 23:53:22 +0400</lastBuildDate>
+    <atom:link href="http://localhost:1313/tags/webgpu/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Quantize Your Attributes!</title>
+      <link>http://localhost:1313/posts/quantize-your-attributes/</link>
+      <pubDate>Sun, 18 Jan 2026 23:53:22 +0400</pubDate>
+      <guid>http://localhost:1313/posts/quantize-your-attributes/</guid>
+      <description>&lt;p&gt;&#xA;&#xA;&#xA;&#xA;&#xA;&#xA;&#xA;&#xA;&#xA;&#xA;&#xA;&#xA;&lt;figure class=&#34;&#34;&gt;&#xA;&#xA;    &#xA;    &#xA;      &#xA;        &lt;div class=&#34;img-container&#34; style=&#34;--w: 500; --h: 545;&#34;&gt;&#xA;            &lt;img loading=&#34;lazy&#34; alt=&#34;No VRAM&#34; src=&#34;http://localhost:1313/posts/img/no_vram.jpg&#34; width=&#34;500&#34; height=&#34;545&#34;&gt;&#xA;        &lt;/div&gt;&#xA;      &#xA;    &#xA;&#xA;    &#xA;&lt;/figure&gt;&#xA;&lt;/p&gt;&#xA;&lt;p&gt;Too many times I have seen vertex shaders written like this:&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

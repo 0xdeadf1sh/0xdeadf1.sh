@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en-us"
+  dir="ltr">
+
+<head>
+  <meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+<link rel="icon" type="image/ico" href="https://0xdeadf1.sh/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://0xdeadf1.sh/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://0xdeadf1.sh/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="https://0xdeadf1.sh/android-chrome-192x192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="https://0xdeadf1.sh/apple-touch-icon.png">
+
+<meta name="description" content=""/>
+
+
+
+<title>
+    
+    Quantize Your Attributes! | 0xdeadf1.sh
+    
+</title>
+
+<link rel="canonical" href="https://0xdeadf1.sh/posts/quantize-your-attributes/"/>
+
+<meta property="og:url" content="https://0xdeadf1.sh/posts/quantize-your-attributes/">
+  <meta property="og:site_name" content="0xdeadf1.sh">
+  <meta property="og:title" content="Quantize Your Attributes!">
+  <meta property="og:description" content="low-level/high-performance/graphics/embedded/cryptography programming">
+  <meta property="og:locale" content="en_us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-18T23:53:22+04:00">
+    <meta property="article:modified_time" content="2026-01-18T23:53:22+04:00">
+    <meta property="article:tag" content="Optimization">
+    <meta property="article:tag" content="Vulkan">
+    <meta property="article:tag" content="Slang">
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/assets/combined.min.adc07fc34c18aa999eb85f9b63ad24a53c9105cee869ea0618b13b897340c461.css" media="all">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+</head>
+
+
+
+<body class="dark">
+
+  <div class="content">
+    <header>
+      
+
+<div class="header">
+
+    
+
+</div>
+
+    </header>
+
+    <main class="main">
+      
+
+
+
+
+<div class="breadcrumbs"><a href="/">~</a><span class="breadcrumbs-separator">/</span><a href="/posts/">Posts</a><span class="breadcrumbs-separator">/</span>
+        <a href="/posts/quantize-your-attributes/">Quantize Your Attributes!</a></div>
+
+
+<div >
+  <article>
+    <header class="single-intro-container">
+        
+        <h1 class="single-title">Quantize Your Attributes!</h1>
+        
+        <div class="single-subsummary">
+          
+          <div>
+            
+            <p class="single-date">
+              <time datetime="2026-01-18T23:53:22&#43;04:00">January 18, 2026</time>
+              &nbsp; · &nbsp;3 min read
+            </p>
+          </div>
+        </div>
+        
+    </header>    
+        <div class="single-tags"><span>
+                  <a href="https://0xdeadf1.sh/tags/optimization/">#Optimization</a>
+                </span><span>
+                  <a href="https://0xdeadf1.sh/tags/vulkan/">#Vulkan</a>
+                </span><span>
+                  <a href="https://0xdeadf1.sh/tags/slang/">#Slang</a>
+                </span>
+        </div>
+    
+    <div class="single-content">
+      <p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-small">
+
+    
+    
+      
+        <div class="img-container" style="--w: 500; --h: 545;">
+            <img loading="lazy" alt="No VRAM" src="/posts/img/no_vram.jpg#small" width="500" height="545">
+        </div>
+      
+    
+
+    
+</figure>
+</p>
+<p>I have seen a shader like this too often:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="k">struct</span> <span class="nc">VertexInput</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl">    <span class="n">uint</span> <span class="nl">vertexIndex</span> <span class="p">:</span> <span class="n">SV_VertexID</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl">    <span class="n">uint</span> <span class="nl">instanceIndex</span> <span class="p">:</span> <span class="n">SV_InstanceID</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="p">};</span>
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl"><span class="k">struct</span> <span class="nc">VertexOutput</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">    <span class="n">float4</span> <span class="nl">position</span> <span class="p">:</span> <span class="n">SV_Position</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">    <span class="n">float3</span> <span class="n">normal</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="n">float2</span> <span class="n">texcoord</span><span class="p">;</span> 
+</span></span><span class="line"><span class="ln">10</span><span class="cl"><span class="p">};</span>
+</span></span><span class="line"><span class="ln">11</span><span class="cl">
+</span></span><span class="line"><span class="ln">12</span><span class="cl"><span class="k">struct</span> <span class="nc">VertexSSBO</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">13</span><span class="cl">    <span class="n">float3</span> <span class="n">position</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">14</span><span class="cl">    <span class="n">float3</span> <span class="n">normal</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">15</span><span class="cl">    <span class="n">float2</span> <span class="n">texcoord</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">16</span><span class="cl"><span class="p">};</span>
+</span></span><span class="line"><span class="ln">17</span><span class="cl">
+</span></span><span class="line"><span class="ln">18</span><span class="cl"><span class="n">StructuredBuffer</span><span class="o">&lt;</span><span class="n">VertexSSBO</span><span class="o">&gt;</span> <span class="n">vertices</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">19</span><span class="cl">
+</span></span><span class="line"><span class="ln">20</span><span class="cl"><span class="p">[</span><span class="n">shader</span><span class="p">(</span><span class="s">&#34;vertex&#34;</span><span class="p">)]</span>
+</span></span><span class="line"><span class="ln">21</span><span class="cl"><span class="n">VertexOutput</span> <span class="n">vertex_main</span><span class="p">(</span><span class="n">VertexInput</span> <span class="n">input</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">22</span><span class="cl">    <span class="n">VertexSSBO</span> <span class="n">vData</span> <span class="o">=</span> <span class="n">vertices</span><span class="p">[</span><span class="n">input</span><span class="p">.</span><span class="n">vertexIndex</span><span class="p">];</span>
+</span></span><span class="line"><span class="ln">23</span><span class="cl">    
+</span></span><span class="line"><span class="ln">24</span><span class="cl">    <span class="n">VertexOutput</span> <span class="n">output</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">25</span><span class="cl">    <span class="n">output</span><span class="p">.</span><span class="n">position</span> <span class="o">=</span> <span class="n">float4</span><span class="p">(</span><span class="n">vData</span><span class="p">.</span><span class="n">position</span><span class="p">,</span> <span class="mf">1.0f</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">26</span><span class="cl">    <span class="n">output</span><span class="p">.</span><span class="n">normal</span> <span class="o">=</span> <span class="n">vData</span><span class="p">.</span><span class="n">normal</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">27</span><span class="cl">    <span class="n">output</span><span class="p">.</span><span class="n">texcoord</span> <span class="o">=</span> <span class="n">vData</span><span class="p">.</span><span class="n">texcoord</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">28</span><span class="cl">    <span class="k">return</span> <span class="n">output</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">29</span><span class="cl"><span class="p">}</span></span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>The example above is written in <a href="https://shader-slang.org">Slang</a>.
+This is a simple vertex shader that pulls clip-space positions, normals,
+and texture coordinates from an SSBO&mdash;not too different from what one
+might find in a typical renderer, minus some matrix multiplications.
+But it consumes too much bandwidth and VRAM. Can you find out why?</p>
+<p>Notice that the struct <code>VertexSSBO</code> contains attributes specified as
+vectors with floating-point members. How big is that? You might think
+$4 * 3 + 4 * 3 + 4 * 2 = 32$ bytes. But according to
+<a href="https://www.oreilly.com/library/view/opengl-programming-guide/9780132748445/app09lev1sec3.html">std430</a> rules,
+<code>float3</code> must be 16-byte aligned, and even though <code>float2</code> only needs
+8-byte alignment, the entire <code>struct</code> must be aligned to its largest
+member (16 bytes). This results in an effective size of 48 bytes due to internal and tail padding.
+For a mesh containing 1 million vertices, that means 48 megabytes must be
+transferred and maintained in VRAM. In Vulkan the transfer goes like this:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln">1</span><span class="cl"><span class="kt">void</span><span class="o">*</span> <span class="n">data</span><span class="p">{};</span>
+</span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="n">vkMapMemory</span><span class="p">(</span><span class="n">device</span><span class="p">,</span> <span class="n">stagingBufferMemory</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">bufferSize</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">data</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">3</span><span class="cl"><span class="n">memcpy</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">particles</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span> <span class="n">bufferSize</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">4</span><span class="cl"><span class="n">vkUnmapMemory</span><span class="p">(</span><span class="n">device</span><span class="p">,</span> <span class="n">stagingBufferMemory</span><span class="p">);</span></span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>That is your CPU churning through 48 megabytes. You will also need a call to <code>vkCmdCopyBuffer</code>
+to transfer those 48 megabytes from a staging buffer to a device buffer.</p>
+<p>For most projects you don&rsquo;t need 32-bit precision. For simple low-poly meshes you can
+probably even get away with 8-bit precision. Consider this:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="k">struct</span> <span class="nc">VertexInput</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl">    <span class="n">uint</span> <span class="nl">vertexIndex</span> <span class="p">:</span> <span class="n">SV_VertexID</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl">    <span class="n">uint</span> <span class="nl">instanceIndex</span> <span class="p">:</span> <span class="n">SV_InstanceID</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="p">};</span>
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl"><span class="k">struct</span> <span class="nc">VertexOutput</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">    <span class="n">float4</span> <span class="nl">position</span> <span class="p">:</span> <span class="n">SV_Position</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">    <span class="n">float3</span> <span class="n">normal</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="n">float2</span> <span class="n">texcoord</span><span class="p">;</span> 
+</span></span><span class="line"><span class="ln">10</span><span class="cl"><span class="p">};</span>
+</span></span><span class="line"><span class="ln">11</span><span class="cl">
+</span></span><span class="line"><span class="ln">12</span><span class="cl"><span class="k">struct</span> <span class="nc">VertexSSBO</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">13</span><span class="cl">    <span class="n">uint</span> <span class="n">position</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">14</span><span class="cl">    <span class="n">uint</span> <span class="n">normal</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">15</span><span class="cl">    <span class="n">uint</span> <span class="n">texcoord</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">16</span><span class="cl"><span class="p">};</span>
+</span></span><span class="line"><span class="ln">17</span><span class="cl">
+</span></span><span class="line"><span class="ln">18</span><span class="cl"><span class="n">StructuredBuffer</span><span class="o">&lt;</span><span class="n">VertexSSBO</span><span class="o">&gt;</span> <span class="n">vertices</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">19</span><span class="cl">
+</span></span><span class="line"><span class="ln">20</span><span class="cl"><span class="p">[</span><span class="n">shader</span><span class="p">(</span><span class="s">&#34;vertex&#34;</span><span class="p">)]</span>
+</span></span><span class="line"><span class="ln">21</span><span class="cl"><span class="n">VertexOutput</span> <span class="n">vertex_main</span><span class="p">(</span><span class="n">VertexInput</span> <span class="n">input</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">22</span><span class="cl">    <span class="n">VertexSSBO</span> <span class="n">vData</span> <span class="o">=</span> <span class="n">vertices</span><span class="p">[</span><span class="n">input</span><span class="p">.</span><span class="n">vertexIndex</span><span class="p">];</span>
+</span></span><span class="line"><span class="ln">23</span><span class="cl">
+</span></span><span class="line"><span class="ln">24</span><span class="cl">    <span class="c1">// de-quantize on the GPU
+</span></span></span><span class="line"><span class="ln">25</span><span class="cl">    <span class="n">float4</span> <span class="n">position</span> <span class="o">=</span> <span class="n">unpackSnorm4x8ToFloat</span><span class="p">(</span><span class="n">vData</span><span class="p">.</span><span class="n">position</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">26</span><span class="cl">    <span class="n">float3</span> <span class="n">normal</span> <span class="o">=</span> <span class="n">unpackSnorm4x8ToFloat</span><span class="p">(</span><span class="n">vData</span><span class="p">.</span><span class="n">normal</span><span class="p">).</span><span class="n">xyz</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">27</span><span class="cl">    <span class="n">float2</span> <span class="n">texcoord</span> <span class="o">=</span> <span class="n">unpackSnorm4x8ToFloat</span><span class="p">(</span><span class="n">vData</span><span class="p">.</span><span class="n">texcoord</span><span class="p">).</span><span class="n">xy</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">28</span><span class="cl">    
+</span></span><span class="line"><span class="ln">29</span><span class="cl">    <span class="n">VertexOutput</span> <span class="n">output</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">30</span><span class="cl">    <span class="n">output</span><span class="p">.</span><span class="n">position</span> <span class="o">=</span> <span class="n">position</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">31</span><span class="cl">    <span class="n">output</span><span class="p">.</span><span class="n">normal</span> <span class="o">=</span> <span class="n">normal</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">32</span><span class="cl">    <span class="n">output</span><span class="p">.</span><span class="n">texcoord</span> <span class="o">=</span> <span class="n">texcoord</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">33</span><span class="cl">    <span class="k">return</span> <span class="n">output</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">34</span><span class="cl"><span class="p">}</span></span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>I used <a href="https://docs.shader-slang.org/en/latest/external/core-module-reference/global-decls/unpacksnorm4x8tofloat-6eg.html">unpackSnorm4x8ToFloat</a>
+to convert the quantized data back to float.
+For actual quantization, you may use:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="kt">uint32_t</span> <span class="nf">p8</span><span class="p">(</span><span class="kt">float</span> <span class="n">v</span><span class="p">)</span>
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl">    <span class="n">v</span> <span class="o">=</span> <span class="p">(</span><span class="n">v</span> <span class="o">&gt;</span> <span class="mf">1.0f</span><span class="p">)</span> <span class="o">?</span> <span class="mf">1.0f</span> <span class="o">:</span> <span class="p">(</span><span class="n">v</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mf">1.0f</span> <span class="o">?</span> <span class="o">-</span><span class="mf">1.0f</span> <span class="o">:</span> <span class="n">v</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">    <span class="k">return</span> <span class="p">(</span><span class="kt">uint32_t</span><span class="p">)((</span><span class="kt">int</span><span class="p">)</span><span class="n">roundf</span><span class="p">(</span><span class="n">v</span> <span class="o">*</span> <span class="mf">127.0f</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0xFF</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="kt">uint32_t</span> <span class="nf">packVec4F32ToU32</span><span class="p">(</span><span class="kt">float</span> <span class="n">x</span><span class="p">,</span> <span class="kt">float</span> <span class="n">y</span><span class="p">,</span> <span class="kt">float</span> <span class="n">z</span><span class="p">,</span> <span class="kt">float</span> <span class="n">w</span><span class="p">)</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="k">return</span> <span class="n">p8</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">p8</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">p8</span><span class="p">(</span><span class="n">z</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="mi">16</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">p8</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="mi">24</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">10</span><span class="cl"><span class="p">}</span></span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>So how much did we save? The new <code>struct</code> is $4 + 4 + 4 = 12$ bytes.
+For a mesh with 1 million vertices, that is about
+12 megabytes&mdash;75% reduction. Now you can use that saved VRAM for something actually
+interesting, like higher-resolution <a href="https://learnopengl.com/Guest-Articles/2021/CSM">cascaded shadow maps</a>.</p>
+<p>By the way, 8-bit quantization may be too aggressive for most meshes
+(although usually fine for normals), so 16-bit would be better in practice (you may use the
+<a href="https://github.com/zeux/meshoptimizer">meshoptimizer library</a> for this).
+<a href="https://playcode.io/threejs-playground--019bd331-345a-70fd-aab4-e08e04b011cf">This demo</a>
+shows what 8-bit quantization does to a sphere.</p>
+<p>Also we have assumed that our attributes are normalized to the $[-1.0, 1.0]$ range. This may
+not be true for a random model downloaded from the Internet, so some pre-processing may be
+necessary.</p>
+    </div>
+  </article>
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+  <div class="back-to-top">
+    <a href="#top">
+      back to top
+    </a>
+  </div>
+  
+
+</div>
+
+
+    </main>
+  </div>
+
+  
+  
+
+
+
+
+
+    
+
+
+
+
+  <footer>
+    
+
+
+    
+    
+
+
+
+
+
+    
+
+
+
+
+
+    
+
+    
+    
+    <p>Licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></p>
+    
+
+
+
+
+
+<script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "573d419e6228428e91497ea835107a93"}'></script>
+<script defer src='bubbles.js'></script>
+
+  </footer>
+
+  
+  <link rel="stylesheet" 
+  href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css">
+  
+<script defer 
+  src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js"></script>
+
+<script defer
+  src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body);"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ]
+    });
+  });
+</script>
+  
+</body>
+
+<script defer src="/js/copy-code.js"></script>
+</html>
