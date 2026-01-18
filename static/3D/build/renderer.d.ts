@@ -18,6 +18,7 @@ export declare class D3Logger {
 export declare class D3Utils {
     static fetchText(url: string): Promise<string>;
     static showPrettyException(e: unknown): void;
+    static packVec4F32ToU32(x: number, y: number, z: number, w: number): number;
 }
 export declare class D3Renderer {
     private m_gpu;

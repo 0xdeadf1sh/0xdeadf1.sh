@@ -13,6 +13,7 @@
     "@webgpu/types": "^0.1.69"
   },
   "dependencies": {
+    "stats-js": "^1.0.1",
     "webgpu-utils": "^2.0.3"
   }
 }

@@ -1,4 +1,5 @@
 import * as WGPUtils from "webgpu-utils";
+import Stats from "stats-js";
 export class D3Exception {
     m_class;
     m_function;
@@ -65,6 +66,16 @@ export class D3Utils {
         else {
             console.error(e);
         }
+    }
+    static packVec4F32ToU32(x, y, z, w) {
+        x = Math.round((Math.max(-1.0, Math.min(1.0, x)) * 127.0) & 0xFF);
+        y = Math.round((Math.max(-1.0, Math.min(1.0, y)) * 127.0) & 0xFF);
+        z = Math.round((Math.max(-1.0, Math.min(1.0, z)) * 127.0) & 0xFF);
+        w = Math.round((Math.max(-1.0, Math.min(1.0, w)) * 127.0) & 0xFF);
+        return (x << 0 |
+            y << 8 |
+            z << 16 |
+            w << 24) >>> 0;
     }
 }
 export class D3Renderer {
@@ -238,11 +249,16 @@ export class D3Renderer {
         this.m_device.queue.submit(buffers);
     }
     render(callback) {
+        const stats = new Stats();
+        stats.showPanel(0);
+        document.body.appendChild(stats.dom);
         const renderInternal = () => {
+            stats.begin();
             const now = performance.now();
             const dt = this.m_lastTime ? (performance.now() - this.m_lastTime) : 0.0;
             this.m_lastTime = now;
             callback(dt);
+            stats.end();
             requestAnimationFrame(renderInternal);
         };
         requestAnimationFrame(renderInternal);
@@ -311,19 +327,22 @@ async function main() {
         const defs = WGPUtils.makeShaderDataDefinitions(basicShaderSource);
         const { size: vertexSSBOSize } = WGPUtils.getSizeAndAlignmentOfUnsizedArrayElement(defs.storages["vertices"]);
         const { size: transformSSBOSize } = WGPUtils.getSizeAndAlignmentOfUnsizedArrayElement(defs.storages["transforms"]);
-        const vertexCount = 3;
+        const vertexCount = 4;
         const vertexSSBOData = WGPUtils.makeStructuredView(defs.storages["vertices"], new ArrayBuffer(vertexCount * vertexSSBOSize));
         const instanceCount = 2;
         const transformSSBOData = WGPUtils.makeStructuredView(defs.storages["transforms"], new ArrayBuffer(instanceCount * transformSSBOSize));
         vertexSSBOData.set([{
-                position: [-0.5, -0.5, 0.0],
-                color: [1.0, 0.0, 0.0]
+                position: [D3Utils.packVec4F32ToU32(-0.5, -0.5, 0.0, 1.0)],
+                color: [D3Utils.packVec4F32ToU32(1.0, 0.0, 0.0, 1.0)]
             }, {
-                position: [0.5, -0.5, 0.0],
-                color: [0.0, 1.0, 0.0]
+                position: [D3Utils.packVec4F32ToU32(0.5, -0.5, 0.0, 1.0)],
+                color: [D3Utils.packVec4F32ToU32(0.0, 1.0, 0.0, 1.0)]
             }, {
-                position: [0.0, 0.5, 0.0],
-                color: [0.0, 0.0, 1.0]
+                position: [D3Utils.packVec4F32ToU32(-0.5, 0.5, 0.0, 1.0)],
+                color: [D3Utils.packVec4F32ToU32(0.0, 0.0, 1.0, 0.0)]
+            }, {
+                position: [D3Utils.packVec4F32ToU32(0.5, 0.5, 0.0, 1.0)],
+                color: [D3Utils.packVec4F32ToU32(1.0, 1.0, 0.0, 1.0)]
             }]);
         transformSSBOData.set([{
                 offset: [-0.25, 0.0, 0.0, 0.0]
@@ -334,6 +353,11 @@ async function main() {
         renderer.writeBuffer(vertexSSBO, 0, vertexSSBOData.arrayBuffer);
         const transformSSBO = renderer.createBuffer("TransformSSBO", transformSSBOData.arrayBuffer.byteLength, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST, false);
         renderer.writeBuffer(transformSSBO, 0, transformSSBOData.arrayBuffer);
+        const eboData = new Uint16Array([
+            0, 1, 2, 2, 1, 3,
+        ]);
+        const ebo = renderer.createBuffer("IndexBuffer", eboData.byteLength, GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST, false);
+        renderer.writeBuffer(ebo, 0, eboData.buffer);
         const bindGroup = renderer.createBindGroup("transform bind group", 0, basicPipeline, [transformSSBO, vertexSSBO]);
         let clearRed = 0.0;
         let clearGreen = 0.0;
@@ -360,7 +384,8 @@ async function main() {
             const pass = cmdEncoder.beginRenderPass(renderpassDesc);
             pass.setPipeline(basicPipeline);
             pass.setBindGroup(0, bindGroup);
-            pass.draw(vertexCount, instanceCount);
+            pass.setIndexBuffer(ebo, "uint16");
+            pass.drawIndexed(eboData.length, instanceCount);
             pass.end();
             const cmdBuffer = cmdEncoder.finish();
             renderer.submitCommandBuffers([cmdBuffer]);

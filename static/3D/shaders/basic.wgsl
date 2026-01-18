@@ -9,8 +9,8 @@ struct VertexOutput {
 };
 
 struct VertexSSBO {
-    position: vec3f,
-    color: vec3f,
+    position: u32,
+    color: u32,
 };
 
 struct TransformSSBO {
@@ -22,10 +22,13 @@ struct TransformSSBO {
 
 @vertex
 fn vertex_main(input: VertexInput) -> VertexOutput {
+
+    var vertexPos = unpack4x8snorm(vertices[input.vertexIndex].position);
+    var vertexColor = unpack4x8snorm(vertices[input.vertexIndex].color);
+
     var output: VertexOutput;
-    output.position = vec4f(vertices[input.vertexIndex].position, 1.0f) +
-                      transforms[input.instanceIndex].offset;
-    output.color = vec4f(vertices[input.vertexIndex].color, 1.0f);
+    output.position = vertexPos + transforms[input.instanceIndex].offset;
+    output.color = vertexColor;
     return output;
 }
 
