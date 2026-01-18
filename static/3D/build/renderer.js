@@ -1,5 +1,6 @@
 import * as WGPUtils from "webgpu-utils";
 import Stats from "stats-js";
+import * as DatGUI from "dat.gui";
 export class D3Exception {
     m_class;
     m_function;
@@ -88,6 +89,8 @@ export class D3Renderer {
     m_versionMinor = 1;
     m_versionPatch = 0;
     m_lastTime = 0;
+    m_devUI;
+    m_state;
     static async create(canvasId, deviceLostCallback) {
         if (!navigator.gpu) {
             throw new D3Exception("D3Renderer", "create", "WebGPU not supported");
@@ -146,6 +149,37 @@ export class D3Renderer {
         this.m_device = m_device;
         this.m_canvas = m_canvas;
         this.m_ctx = m_ctx;
+        this.m_state = {
+            m_clearColor: [10, 20, 10, 1.0],
+        };
+        this.m_devUI = new DatGUI.GUI({ name: "D3Renderer" });
+        this.configureDevUI();
+    }
+    configureDevUI() {
+        const info = this.m_devUI.addFolder("Engine Info");
+        const versionAll = {
+            version: `${this.m_versionMajor}.${this.m_versionMinor}.${this.m_versionPatch}`
+        };
+        info.add(versionAll, "version")
+            .domElement.style.pointerEvents = "none";
+        ;
+        info.add(window, "devicePixelRatio")
+            .listen()
+            .domElement.style.pointerEvents = "none";
+        info.add(this.m_canvas, "width")
+            .listen()
+            .domElement.style.pointerEvents = "none";
+        info.add(this.m_canvas, "height")
+            .listen()
+            .domElement.style.pointerEvents = "none";
+        info.add(this.m_adapter.limits, "maxBufferSize")
+            .domElement.style.pointerEvents = "none";
+        info.add(this.m_adapter.limits, "maxStorageBufferBindingSize")
+            .domElement.style.pointerEvents = "none";
+        info.open();
+        const globalSettings = this.m_devUI.addFolder("Global Settings");
+        globalSettings.addColor(this.m_state, "m_clearColor");
+        globalSettings.open();
     }
     async createShaderModule(label, shaderSrc) {
         const desc = {
@@ -301,6 +335,13 @@ export class D3Renderer {
     getCanvasConfiguration() {
         return this.m_ctx.getConfiguration();
     }
+    getClearColorNormalized() {
+        const factor = 1.0 / 255;
+        return [this.m_state.m_clearColor[0] ? this.m_state.m_clearColor[0] * factor : 0.0,
+            this.m_state.m_clearColor[1] ? this.m_state.m_clearColor[1] * factor : 0.0,
+            this.m_state.m_clearColor[2] ? this.m_state.m_clearColor[2] * factor : 0.0,
+            this.m_state.m_clearColor[3] ? this.m_state.m_clearColor[3] * factor : 0.0];
+    }
     toString() {
         return `D3Renderer version: ${this.m_versionMajor}.` +
             `${this.m_versionMinor}.` +
@@ -359,20 +400,15 @@ async function main() {
         const ebo = renderer.createBuffer("IndexBuffer", eboData.byteLength, GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST, false);
         renderer.writeBuffer(ebo, 0, eboData.buffer);
         const bindGroup = renderer.createBindGroup("transform bind group", 0, basicPipeline, [transformSSBO, vertexSSBO]);
-        let clearRed = 0.0;
-        let clearGreen = 0.0;
-        let clearBlue = 0.0;
-        let totalMS = 0.0;
         renderer.render(dt => {
+            dt += 1;
             renderer.resizeCanvas((w, h) => {
-                D3Logger.info(`Framebuffers resized to ${w}x${h}`);
+                ++w;
+                ++h;
             });
-            totalMS += dt * 1e-3;
-            clearRed = (Math.sin(totalMS) + 1.0) * 0.1;
-            clearGreen = (Math.cos(totalMS) + 1.0) * 0.1;
             const colorAttachment = {
                 view: renderer.getCanvasTextureView("D3CanvasTextureView"),
-                clearValue: [clearRed, clearGreen, clearBlue, 1.0],
+                clearValue: renderer.getClearColorNormalized(),
                 loadOp: "clear",
                 storeOp: "store",
             };

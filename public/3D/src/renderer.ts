@@ -7,6 +7,7 @@
 ///////////////////////////////////////////////////////////////////////////
 import * as WGPUtils from "webgpu-utils";
 import Stats from "stats-js";
+import * as DatGUI from "dat.gui";
 
 ///////////////////////////////////////////////////////////////////////////
 /////////////////////// CUSTOM EXCEPTION OBJECT ///////////////////////////
@@ -121,6 +122,13 @@ export class D3Utils {
 }
 
 ///////////////////////////////////////////////////////////////////////////
+///////////////////////////// RENDERER STATE //////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+interface D3RendererState {
+    readonly m_clearColor: Array<number>,
+}
+
+///////////////////////////////////////////////////////////////////////////
 /////////////////////////////// RENDERER //////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 export class D3Renderer {
@@ -132,6 +140,12 @@ export class D3Renderer {
 
     ///////////////////////////////////////////////////////////////////////////
     private m_lastTime: number              = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    private readonly m_devUI: DatGUI.GUI;
+
+    ///////////////////////////////////////////////////////////////////////////
+    private readonly m_state: D3RendererState;
 
     ///////////////////////////////////////////////////////////////////////////
     public static async create(canvasId: string,
@@ -221,7 +235,51 @@ export class D3Renderer {
                         private m_adapter: GPUAdapter,
                         private m_device: GPUDevice,
                         private m_canvas: HTMLCanvasElement,
-                        private m_ctx: GPUCanvasContext) { }
+                        private m_ctx: GPUCanvasContext) {
+
+        this.m_state = {
+            m_clearColor: [ 10, 20, 10, 1.0 ],
+        };
+
+        this.m_devUI = new DatGUI.GUI({ name: "D3Renderer" });
+        this.configureDevUI();
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    private configureDevUI(): void {
+        const info = this.m_devUI.addFolder("Engine Info");
+
+        const versionAll = {
+            version: `${this.m_versionMajor}.${this.m_versionMinor}.${this.m_versionPatch}`
+        };
+
+        info.add(versionAll, "version")
+            .domElement.style.pointerEvents = "none";;
+
+        info.add(window, "devicePixelRatio")
+            .listen()
+            .domElement.style.pointerEvents = "none";
+
+        info.add(this.m_canvas, "width")
+             .listen()
+             .domElement.style.pointerEvents = "none";
+
+        info.add(this.m_canvas, "height")
+            .listen()
+            .domElement.style.pointerEvents = "none";
+
+        info.add(this.m_adapter.limits, "maxBufferSize")
+            .domElement.style.pointerEvents = "none";
+
+        info.add(this.m_adapter.limits, "maxStorageBufferBindingSize")
+            .domElement.style.pointerEvents = "none";
+
+        info.open();
+
+        const globalSettings = this.m_devUI.addFolder("Global Settings");
+        globalSettings.addColor(this.m_state, "m_clearColor");
+        globalSettings.open();
+    }
 
     ///////////////////////////////////////////////////////////////////////////
     public async createShaderModule(label: string,
@@ -442,6 +500,15 @@ export class D3Renderer {
     }
 
     ///////////////////////////////////////////////////////////////////////////
+    public getClearColorNormalized(): Array<number> {
+        const factor = 1.0 / 255;
+        return [ this.m_state.m_clearColor[0] ? this.m_state.m_clearColor[0] * factor : 0.0,
+                 this.m_state.m_clearColor[1] ? this.m_state.m_clearColor[1] * factor : 0.0,
+                 this.m_state.m_clearColor[2] ? this.m_state.m_clearColor[2] * factor : 0.0,
+                 this.m_state.m_clearColor[3] ? this.m_state.m_clearColor[3] * factor : 0.0 ];
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
     public toString(): string {
         return `D3Renderer version: ${this.m_versionMajor}.` +
                                    `${this.m_versionMinor}.` +
@@ -540,25 +607,18 @@ async function main() {
                                                    basicPipeline,
                                                    [ transformSSBO, vertexSSBO ]);
 
-        let clearRed    = 0.0;
-        let clearGreen  = 0.0;
-        let clearBlue   = 0.0;
-        let totalMS     = 0.0;
-
         renderer.render(dt => {
 
+            dt += 1;
+
             renderer.resizeCanvas((w: number, h: number) => {
-                D3Logger.info(`Framebuffers resized to ${w}x${h}`);
+                ++w;
+                ++h;
             });
-
-            totalMS += dt * 1e-3;
-
-            clearRed = (Math.sin(totalMS) + 1.0) * 0.1;
-            clearGreen = (Math.cos(totalMS) + 1.0) * 0.1;
 
             const colorAttachment: GPURenderPassColorAttachment = {
                 view: renderer.getCanvasTextureView("D3CanvasTextureView"),
-                clearValue: [ clearRed, clearGreen, clearBlue, 1.0 ],
+                clearValue: renderer.getClearColorNormalized(),
                 loadOp: "clear",
                 storeOp: "store",
             };

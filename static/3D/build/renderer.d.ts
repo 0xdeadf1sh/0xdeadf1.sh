@@ -30,8 +30,11 @@ export declare class D3Renderer {
     private readonly m_versionMinor;
     private readonly m_versionPatch;
     private m_lastTime;
+    private readonly m_devUI;
+    private readonly m_state;
     static create(canvasId: string, deviceLostCallback: (reason: GPUDeviceLostReason) => void): Promise<D3Renderer>;
     private constructor();
+    private configureDevUI;
     createShaderModule(label: string, shaderSrc: string): Promise<GPUShaderModule>;
     getCanvasTextureFormat(): GPUTextureFormat;
     getCanvasTextureView(label: string): GPUTextureView;
@@ -46,6 +49,7 @@ export declare class D3Renderer {
     printWgslInfo(): void;
     printAdapterInfo(): void;
     getCanvasConfiguration(): GPUCanvasConfigurationOut | null;
+    getClearColorNormalized(): Array<number>;
     toString(): string;
 }
 //# sourceMappingURL=renderer.d.ts.map
