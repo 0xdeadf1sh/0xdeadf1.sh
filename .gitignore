@@ -2,8 +2,5 @@
 *~
 .*~
 
-# dependencies
-node_modules
-
 # ts
 *.tsbuildinfo

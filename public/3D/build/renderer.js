@@ -1,5 +1,5 @@
 import * as WGPUtils from "webgpu-utils";
-class D3Exception {
+export class D3Exception {
     m_class;
     m_function;
     m_msg;
@@ -17,7 +17,7 @@ class D3Exception {
     getFunction() { return this.m_function; }
     getMessage() { return this.m_msg; }
 }
-class D3Logger {
+export class D3Logger {
     constructor() { }
     static getTimeString() {
         const now = new Date();
@@ -42,54 +42,16 @@ class D3Logger {
     }
 }
 ;
-const D3_SHADER_BASIC = `
-    struct VertexInput {
-        @builtin(vertex_index) vertexIndex: u32,
-    };
-
-    struct VertexOutput {
-        @builtin(position) position: vec4f,
-        @location(0) color: vec4f,
-    };
-
-    struct Transform {
-        offset: vec4f,
-    };
-
-    @group(0) @binding(0) var<uniform> transform: Transform;
-
-    @vertex
-    fn vertex_main(input: VertexInput) -> VertexOutput {
-        let positions = array(
-            vec2f( 0.0f,  0.5f),
-            vec2f(-0.5f, -0.5f),
-            vec2f( 0.5f, -0.5f)
-        );
-
-        let colors = array(
-            vec3f(1.0f, 0.0f, 0.0f),
-            vec3f(0.0f, 1.0f, 0.0f),
-            vec3f(0.0f, 0.0f, 1.0f)
-        );
-
-        var output: VertexOutput;
-        output.position = vec4f(positions[input.vertexIndex], 0.0f, 1.0f) + transform.offset;
-        output.color = vec4f(colors[input.vertexIndex], 1.0f);
-        return output;
+export class D3Utils {
+    static async fetchText(url) {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new D3Exception("D3Utils", "fetchText", `could not fetch ${url}`);
+        }
+        return response.text();
     }
-
-    struct FragmentOutput {
-        @location(0) color: vec4f,
-    };
-
-    @fragment
-    fn fragment_main(input: VertexOutput) -> FragmentOutput {
-        var output: FragmentOutput;
-        output.color = input.color;
-        return output;
-    }
-    `;
-class D3Renderer {
+}
+export class D3Renderer {
     m_gpu;
     m_adapter;
     m_device;
@@ -146,11 +108,6 @@ class D3Renderer {
         const config = {
             device,
             format: presentationFormat,
-            usage: GPUTextureUsage.RENDER_ATTACHMENT,
-            alphaMode: "opaque",
-            toneMapping: {
-                "mode": "standard",
-            },
             colorSpace: "srgb",
         };
         ctx.configure(config);
@@ -332,9 +289,10 @@ async function main() {
             }
         });
         const canvasFormat = renderer.getCanvasTextureFormat();
-        const basicModule = await renderer.createShaderModule("D3_SHADER_BASIC", D3_SHADER_BASIC);
+        const basicShaderSource = await D3Utils.fetchText("./shaders/basic.wgsl");
+        const basicModule = await renderer.createShaderModule("D3_SHADER_BASIC", basicShaderSource);
         const basicPipeline = await renderer.createRenderPipeline("D3_SHADER_BASIC_PIPELINE", basicModule, [{ format: canvasFormat }]);
-        const defs = WGPUtils.makeShaderDataDefinitions(D3_SHADER_BASIC);
+        const defs = WGPUtils.makeShaderDataDefinitions(basicShaderSource);
         const transformUBOData = WGPUtils.makeStructuredView(defs.uniforms["transform"]);
         const transformUBO = renderer.createBuffer("transformUBO", transformUBOData.arrayBuffer.byteLength, GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST, false);
         const bindGroup = renderer.createBindGroup("transform bind group", 0, basicPipeline, [transformUBO]);
