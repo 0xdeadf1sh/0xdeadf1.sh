@@ -17,6 +17,7 @@ export declare class D3Logger {
 }
 export declare class D3Utils {
     static fetchText(url: string): Promise<string>;
+    static showPrettyException(e: unknown): void;
 }
 export declare class D3Renderer {
     private m_gpu;
@@ -35,7 +36,7 @@ export declare class D3Renderer {
     getCanvasTextureView(label: string): GPUTextureView;
     createRenderPipeline(label: string, shaderModule: GPUShaderModule, targets: Iterable<GPUColorTargetState>): Promise<GPURenderPipeline>;
     createBuffer(label: string, size: number, usage: GPUBufferUsageFlags, mappedAtCreation: boolean): GPUBuffer;
-    createBindGroup(label: string, bindGroupIndex: number, pipeline: GPUPipelineBase, ubos: Array<GPUBuffer>): GPUBindGroup;
+    createBindGroup(label: string, bindGroupIndex: number, pipeline: GPUPipelineBase, buffers: Array<GPUBuffer>): GPUBindGroup;
     createCmdEncoder(label: string): GPUCommandEncoder;
     submitCommandBuffers(buffers: Iterable<GPUCommandBuffer>): void;
     render(callback: (dt: number) => void): void;

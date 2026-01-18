@@ -50,6 +50,22 @@ export class D3Utils {
         }
         return response.text();
     }
+    static showPrettyException(e) {
+        const exDiv = document.querySelector('#d3exception');
+        if (!exDiv) {
+            console.error('div#d3exception not found');
+        }
+        else if (e instanceof D3Exception) {
+            exDiv.style.display = "block";
+            exDiv.innerHTML = `<span id='d3exception'>!!! D3Exception !!!</span>` +
+                `Class: ${e.getClass()} <br>` +
+                `Function: ${e.getFunction()} <br>` +
+                `Message: ${e.getMessage()}`;
+        }
+        else {
+            console.error(e);
+        }
+    }
 }
 export class D3Renderer {
     m_gpu;
@@ -191,17 +207,17 @@ export class D3Renderer {
         };
         return this.m_device.createBuffer(desc);
     }
-    createBindGroup(label, bindGroupIndex, pipeline, ubos) {
+    createBindGroup(label, bindGroupIndex, pipeline, buffers) {
         const entries = [];
-        for (let i = 0; i < ubos.length; ++i) {
-            const ubo = ubos[i];
-            if (!ubo) {
-                throw new D3Exception("D3Renderer", "createBindGroup", `ubos[${i}] is null`);
+        for (let i = 0; i < buffers.length; ++i) {
+            const buff = buffers[i];
+            if (!buff) {
+                throw new D3Exception("D3Renderer", "createBindGroup", `buffers[${i}] is null`);
             }
             entries.push({
                 binding: i,
                 resource: {
-                    buffer: ubo,
+                    buffer: buff,
                 }
             });
         }
@@ -281,10 +297,10 @@ async function main() {
         const renderer = await D3Renderer.create("d3render", reason => {
             switch (reason) {
                 case "destroyed":
-                    showPrettyException(new D3Exception("(none)", "(deviceLostCallback)", "Device intentionally lost"));
+                    D3Utils.showPrettyException(new D3Exception("(none)", "(deviceLostCallback)", "Device intentionally lost"));
                     break;
                 case "unknown":
-                    showPrettyException(new D3Exception("(none)", "(deviceLostCallback)", "Please reload the page"));
+                    D3Utils.showPrettyException(new D3Exception("(none)", "(deviceLostCallback)", "Please reload the page"));
                     break;
             }
         });
@@ -293,9 +309,32 @@ async function main() {
         const basicModule = await renderer.createShaderModule("D3_SHADER_BASIC", basicShaderSource);
         const basicPipeline = await renderer.createRenderPipeline("D3_SHADER_BASIC_PIPELINE", basicModule, [{ format: canvasFormat }]);
         const defs = WGPUtils.makeShaderDataDefinitions(basicShaderSource);
-        const transformUBOData = WGPUtils.makeStructuredView(defs.uniforms["transform"]);
-        const transformUBO = renderer.createBuffer("transformUBO", transformUBOData.arrayBuffer.byteLength, GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST, false);
-        const bindGroup = renderer.createBindGroup("transform bind group", 0, basicPipeline, [transformUBO]);
+        const { size: vertexSSBOSize } = WGPUtils.getSizeAndAlignmentOfUnsizedArrayElement(defs.storages["vertices"]);
+        const { size: transformSSBOSize } = WGPUtils.getSizeAndAlignmentOfUnsizedArrayElement(defs.storages["transforms"]);
+        const vertexCount = 3;
+        const vertexSSBOData = WGPUtils.makeStructuredView(defs.storages["vertices"], new ArrayBuffer(vertexCount * vertexSSBOSize));
+        const instanceCount = 2;
+        const transformSSBOData = WGPUtils.makeStructuredView(defs.storages["transforms"], new ArrayBuffer(instanceCount * transformSSBOSize));
+        vertexSSBOData.set([{
+                position: [-0.5, -0.5, 0.0],
+                color: [1.0, 0.0, 0.0]
+            }, {
+                position: [0.5, -0.5, 0.0],
+                color: [0.0, 1.0, 0.0]
+            }, {
+                position: [0.0, 0.5, 0.0],
+                color: [0.0, 0.0, 1.0]
+            }]);
+        transformSSBOData.set([{
+                offset: [-0.25, 0.0, 0.0, 0.0]
+            }, {
+                offset: [0.25, 0.0, 0.0, 0.0]
+            }]);
+        const vertexSSBO = renderer.createBuffer("VertexSSBO", vertexSSBOData.arrayBuffer.byteLength, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST, false);
+        renderer.writeBuffer(vertexSSBO, 0, vertexSSBOData.arrayBuffer);
+        const transformSSBO = renderer.createBuffer("TransformSSBO", transformSSBOData.arrayBuffer.byteLength, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST, false);
+        renderer.writeBuffer(transformSSBO, 0, transformSSBOData.arrayBuffer);
+        const bindGroup = renderer.createBindGroup("transform bind group", 0, basicPipeline, [transformSSBO, vertexSSBO]);
         let clearRed = 0.0;
         let clearGreen = 0.0;
         let clearBlue = 0.0;
@@ -319,36 +358,16 @@ async function main() {
             };
             const cmdEncoder = renderer.createCmdEncoder("D3CmdEncoder");
             const pass = cmdEncoder.beginRenderPass(renderpassDesc);
-            transformUBOData.set({
-                offset: [-0.5, 0.0, 0.0, 0.0],
-            });
-            renderer.writeBuffer(transformUBO, 0, transformUBOData.arrayBuffer);
             pass.setPipeline(basicPipeline);
             pass.setBindGroup(0, bindGroup);
-            pass.draw(3);
+            pass.draw(vertexCount, instanceCount);
             pass.end();
             const cmdBuffer = cmdEncoder.finish();
             renderer.submitCommandBuffers([cmdBuffer]);
         });
     }
     catch (e) {
-        showPrettyException(e);
-    }
-}
-function showPrettyException(e) {
-    const exDiv = document.querySelector('#d3exception');
-    if (!exDiv) {
-        console.error('div#d3exception not found');
-    }
-    else if (e instanceof D3Exception) {
-        exDiv.style.display = "block";
-        exDiv.innerHTML = `<span id='d3exception'>!!! D3Exception !!!</span>` +
-            `Class: ${e.getClass()} <br>` +
-            `Function: ${e.getFunction()} <br>` +
-            `Message: ${e.getMessage()}`;
-    }
-    else {
-        console.error(e);
+        D3Utils.showPrettyException(e);
     }
 }
 main();
