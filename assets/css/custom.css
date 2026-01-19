@@ -14,10 +14,10 @@
     100% { opacity: 0; transform: translateY(var(--dist)); }
 }
 
-* {
-    text-shadow: 0 0 4px var(--content-primary);
-}
-
 img {
     padding: 20px;
+}
+
+pre, code {
+    font-size: 0.8em;
 }
