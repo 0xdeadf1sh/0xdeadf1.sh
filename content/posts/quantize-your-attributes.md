@@ -65,7 +65,7 @@ transferred and maintained in VRAM. In Vulkan the transfer goes like this:
 ```cpp
 void* data{};
 vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-memcpy(data, particles.data(), bufferSize);
+memcpy(data, meshData, bufferSize);
 vkUnmapMemory(device, stagingBufferMemory);
 ```
 
