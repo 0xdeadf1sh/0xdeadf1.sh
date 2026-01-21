@@ -14,7 +14,7 @@ readTime = true
 
 I have seen a shader like this too often:
 
-```cpp
+```hlsl
 struct VertexInput {
     uint vertexIndex : SV_VertexID;
     uint instanceIndex : SV_InstanceID;
@@ -75,7 +75,7 @@ to transfer those 48 megabytes from a staging buffer to a device buffer.
 For most projects you don't need 32-bit precision. For simple low-poly meshes you can
 probably even get away with 8-bit precision. Consider this:
 
-```cpp
+```hlsl
 struct VertexInput {
     uint vertexIndex : SV_VertexID;
     uint instanceIndex : SV_InstanceID;

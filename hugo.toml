@@ -266,7 +266,7 @@ url = "/stories"
     noClasses = false
     lineNos = true
     lineNumbersInTable = false
-    style = 'github-dark'
+    style = 'monokai'
 
 [caches]
   [caches.images]

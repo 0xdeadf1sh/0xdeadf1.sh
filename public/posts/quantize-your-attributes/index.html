@@ -62,7 +62,7 @@
 
 
 
-<link rel="stylesheet" href="/assets/combined.min.6140a6d0922ec82cefdd32670b1b588d3d2d86b2d886985c70b016573b431737.css" media="all">
+<link rel="stylesheet" href="/assets/combined.min.5d6fc7a58dc36eef495607af758620733c64594307261f2f10d92d04852d0863.css" media="all">
 
 
 
@@ -170,31 +170,31 @@
 </p>
 <p>I have seen a shader like this too often:</p>
 <div class="code-block">
-  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="k">struct</span> <span class="nc">VertexInput</span> <span class="p">{</span>
-</span></span><span class="line"><span class="ln"> 2</span><span class="cl">    <span class="n">uint</span> <span class="nl">vertexIndex</span> <span class="p">:</span> <span class="n">SV_VertexID</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln"> 3</span><span class="cl">    <span class="n">uint</span> <span class="nl">instanceIndex</span> <span class="p">:</span> <span class="n">SV_InstanceID</span><span class="p">;</span>
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-hlsl" data-lang="hlsl"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="k">struct</span> <span class="n">VertexInput</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl">    <span class="kt">uint</span> <span class="n">vertexIndex</span> <span class="o">:</span> <span class="nd">SV_VertexID</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl">    <span class="kt">uint</span> <span class="n">instanceIndex</span> <span class="o">:</span> <span class="nd">SV_InstanceID</span><span class="p">;</span>
 </span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="p">};</span>
 </span></span><span class="line"><span class="ln"> 5</span><span class="cl">
-</span></span><span class="line"><span class="ln"> 6</span><span class="cl"><span class="k">struct</span> <span class="nc">VertexOutput</span> <span class="p">{</span>
-</span></span><span class="line"><span class="ln"> 7</span><span class="cl">    <span class="n">float4</span> <span class="nl">position</span> <span class="p">:</span> <span class="n">SV_Position</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln"> 8</span><span class="cl">    <span class="n">float3</span> <span class="n">normal</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="n">float2</span> <span class="n">texcoord</span><span class="p">;</span> 
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl"><span class="k">struct</span> <span class="n">VertexOutput</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">    <span class="kt">float4</span> <span class="n">position</span> <span class="o">:</span> <span class="nd">SV_Position</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">    <span class="kt">float3</span> <span class="n">normal</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="kt">float2</span> <span class="n">texcoord</span><span class="p">;</span> 
 </span></span><span class="line"><span class="ln">10</span><span class="cl"><span class="p">};</span>
 </span></span><span class="line"><span class="ln">11</span><span class="cl">
-</span></span><span class="line"><span class="ln">12</span><span class="cl"><span class="k">struct</span> <span class="nc">VertexSSBO</span> <span class="p">{</span>
-</span></span><span class="line"><span class="ln">13</span><span class="cl">    <span class="n">float3</span> <span class="n">position</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln">14</span><span class="cl">    <span class="n">float3</span> <span class="n">normal</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln">15</span><span class="cl">    <span class="n">float2</span> <span class="n">texcoord</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">12</span><span class="cl"><span class="k">struct</span> <span class="n">VertexSSBO</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">13</span><span class="cl">    <span class="kt">float3</span> <span class="n">position</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">14</span><span class="cl">    <span class="kt">float3</span> <span class="n">normal</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">15</span><span class="cl">    <span class="kt">float2</span> <span class="n">texcoord</span><span class="p">;</span>
 </span></span><span class="line"><span class="ln">16</span><span class="cl"><span class="p">};</span>
 </span></span><span class="line"><span class="ln">17</span><span class="cl">
-</span></span><span class="line"><span class="ln">18</span><span class="cl"><span class="n">StructuredBuffer</span><span class="o">&lt;</span><span class="n">VertexSSBO</span><span class="o">&gt;</span> <span class="n">vertices</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">18</span><span class="cl"><span class="kt">StructuredBuffer</span><span class="o">&lt;</span><span class="n">VertexSSBO</span><span class="o">&gt;</span> <span class="n">vertices</span><span class="p">;</span>
 </span></span><span class="line"><span class="ln">19</span><span class="cl">
 </span></span><span class="line"><span class="ln">20</span><span class="cl"><span class="p">[</span><span class="n">shader</span><span class="p">(</span><span class="s">&#34;vertex&#34;</span><span class="p">)]</span>
 </span></span><span class="line"><span class="ln">21</span><span class="cl"><span class="n">VertexOutput</span> <span class="n">vertex_main</span><span class="p">(</span><span class="n">VertexInput</span> <span class="n">input</span><span class="p">)</span> <span class="p">{</span>
 </span></span><span class="line"><span class="ln">22</span><span class="cl">    <span class="n">VertexSSBO</span> <span class="n">vData</span> <span class="o">=</span> <span class="n">vertices</span><span class="p">[</span><span class="n">input</span><span class="p">.</span><span class="n">vertexIndex</span><span class="p">];</span>
 </span></span><span class="line"><span class="ln">23</span><span class="cl">    
 </span></span><span class="line"><span class="ln">24</span><span class="cl">    <span class="n">VertexOutput</span> <span class="n">output</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln">25</span><span class="cl">    <span class="n">output</span><span class="p">.</span><span class="n">position</span> <span class="o">=</span> <span class="n">float4</span><span class="p">(</span><span class="n">vData</span><span class="p">.</span><span class="n">position</span><span class="p">,</span> <span class="mf">1.0f</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">25</span><span class="cl">    <span class="n">output</span><span class="p">.</span><span class="n">position</span> <span class="o">=</span> <span class="kt">float4</span><span class="p">(</span><span class="n">vData</span><span class="p">.</span><span class="n">position</span><span class="p">,</span> <span class="mf">1.0f</span><span class="p">);</span>
 </span></span><span class="line"><span class="ln">26</span><span class="cl">    <span class="n">output</span><span class="p">.</span><span class="n">normal</span> <span class="o">=</span> <span class="n">vData</span><span class="p">.</span><span class="n">normal</span><span class="p">;</span>
 </span></span><span class="line"><span class="ln">27</span><span class="cl">    <span class="n">output</span><span class="p">.</span><span class="n">texcoord</span> <span class="o">=</span> <span class="n">vData</span><span class="p">.</span><span class="n">texcoord</span><span class="p">;</span>
 </span></span><span class="line"><span class="ln">28</span><span class="cl">    <span class="k">return</span> <span class="n">output</span><span class="p">;</span>
@@ -227,33 +227,33 @@ to transfer those 48 megabytes from a staging buffer to a device buffer.</p>
 <p>For most projects you don&rsquo;t need 32-bit precision. For simple low-poly meshes you can
 probably even get away with 8-bit precision. Consider this:</p>
 <div class="code-block">
-  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="k">struct</span> <span class="nc">VertexInput</span> <span class="p">{</span>
-</span></span><span class="line"><span class="ln"> 2</span><span class="cl">    <span class="n">uint</span> <span class="nl">vertexIndex</span> <span class="p">:</span> <span class="n">SV_VertexID</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln"> 3</span><span class="cl">    <span class="n">uint</span> <span class="nl">instanceIndex</span> <span class="p">:</span> <span class="n">SV_InstanceID</span><span class="p">;</span>
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-hlsl" data-lang="hlsl"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="k">struct</span> <span class="n">VertexInput</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl">    <span class="kt">uint</span> <span class="n">vertexIndex</span> <span class="o">:</span> <span class="nd">SV_VertexID</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl">    <span class="kt">uint</span> <span class="n">instanceIndex</span> <span class="o">:</span> <span class="nd">SV_InstanceID</span><span class="p">;</span>
 </span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="p">};</span>
 </span></span><span class="line"><span class="ln"> 5</span><span class="cl">
-</span></span><span class="line"><span class="ln"> 6</span><span class="cl"><span class="k">struct</span> <span class="nc">VertexOutput</span> <span class="p">{</span>
-</span></span><span class="line"><span class="ln"> 7</span><span class="cl">    <span class="n">float4</span> <span class="nl">position</span> <span class="p">:</span> <span class="n">SV_Position</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln"> 8</span><span class="cl">    <span class="n">float3</span> <span class="n">normal</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="n">float2</span> <span class="n">texcoord</span><span class="p">;</span> 
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl"><span class="k">struct</span> <span class="n">VertexOutput</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">    <span class="kt">float4</span> <span class="n">position</span> <span class="o">:</span> <span class="nd">SV_Position</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">    <span class="kt">float3</span> <span class="n">normal</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="kt">float2</span> <span class="n">texcoord</span><span class="p">;</span> 
 </span></span><span class="line"><span class="ln">10</span><span class="cl"><span class="p">};</span>
 </span></span><span class="line"><span class="ln">11</span><span class="cl">
-</span></span><span class="line"><span class="ln">12</span><span class="cl"><span class="k">struct</span> <span class="nc">VertexSSBO</span> <span class="p">{</span>
-</span></span><span class="line"><span class="ln">13</span><span class="cl">    <span class="n">uint</span> <span class="n">position</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln">14</span><span class="cl">    <span class="n">uint</span> <span class="n">normal</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln">15</span><span class="cl">    <span class="n">uint</span> <span class="n">texcoord</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">12</span><span class="cl"><span class="k">struct</span> <span class="n">VertexSSBO</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">13</span><span class="cl">    <span class="kt">uint</span> <span class="n">position</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">14</span><span class="cl">    <span class="kt">uint</span> <span class="n">normal</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">15</span><span class="cl">    <span class="kt">uint</span> <span class="n">texcoord</span><span class="p">;</span>
 </span></span><span class="line"><span class="ln">16</span><span class="cl"><span class="p">};</span>
 </span></span><span class="line"><span class="ln">17</span><span class="cl">
-</span></span><span class="line"><span class="ln">18</span><span class="cl"><span class="n">StructuredBuffer</span><span class="o">&lt;</span><span class="n">VertexSSBO</span><span class="o">&gt;</span> <span class="n">vertices</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">18</span><span class="cl"><span class="kt">StructuredBuffer</span><span class="o">&lt;</span><span class="n">VertexSSBO</span><span class="o">&gt;</span> <span class="n">vertices</span><span class="p">;</span>
 </span></span><span class="line"><span class="ln">19</span><span class="cl">
 </span></span><span class="line"><span class="ln">20</span><span class="cl"><span class="p">[</span><span class="n">shader</span><span class="p">(</span><span class="s">&#34;vertex&#34;</span><span class="p">)]</span>
 </span></span><span class="line"><span class="ln">21</span><span class="cl"><span class="n">VertexOutput</span> <span class="n">vertex_main</span><span class="p">(</span><span class="n">VertexInput</span> <span class="n">input</span><span class="p">)</span> <span class="p">{</span>
 </span></span><span class="line"><span class="ln">22</span><span class="cl">    <span class="n">VertexSSBO</span> <span class="n">vData</span> <span class="o">=</span> <span class="n">vertices</span><span class="p">[</span><span class="n">input</span><span class="p">.</span><span class="n">vertexIndex</span><span class="p">];</span>
 </span></span><span class="line"><span class="ln">23</span><span class="cl">
-</span></span><span class="line"><span class="ln">24</span><span class="cl">    <span class="c1">// de-quantize on the GPU
-</span></span></span><span class="line"><span class="ln">25</span><span class="cl">    <span class="n">float4</span> <span class="n">position</span> <span class="o">=</span> <span class="n">unpackSnorm4x8ToFloat</span><span class="p">(</span><span class="n">vData</span><span class="p">.</span><span class="n">position</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">26</span><span class="cl">    <span class="n">float3</span> <span class="n">normal</span> <span class="o">=</span> <span class="n">unpackSnorm4x8ToFloat</span><span class="p">(</span><span class="n">vData</span><span class="p">.</span><span class="n">normal</span><span class="p">).</span><span class="n">xyz</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln">27</span><span class="cl">    <span class="n">float2</span> <span class="n">texcoord</span> <span class="o">=</span> <span class="n">unpackSnorm4x8ToFloat</span><span class="p">(</span><span class="n">vData</span><span class="p">.</span><span class="n">texcoord</span><span class="p">).</span><span class="n">xy</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">24</span><span class="cl">    <span class="c1">// de-quantize on the GPU</span>
+</span></span><span class="line"><span class="ln">25</span><span class="cl">    <span class="kt">float4</span> <span class="n">position</span> <span class="o">=</span> <span class="n">unpackSnorm4x8ToFloat</span><span class="p">(</span><span class="n">vData</span><span class="p">.</span><span class="n">position</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">26</span><span class="cl">    <span class="kt">float3</span> <span class="n">normal</span> <span class="o">=</span> <span class="n">unpackSnorm4x8ToFloat</span><span class="p">(</span><span class="n">vData</span><span class="p">.</span><span class="n">normal</span><span class="p">).</span><span class="n">xyz</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">27</span><span class="cl">    <span class="kt">float2</span> <span class="n">texcoord</span> <span class="o">=</span> <span class="n">unpackSnorm4x8ToFloat</span><span class="p">(</span><span class="n">vData</span><span class="p">.</span><span class="n">texcoord</span><span class="p">).</span><span class="n">xy</span><span class="p">;</span>
 </span></span><span class="line"><span class="ln">28</span><span class="cl">    
 </span></span><span class="line"><span class="ln">29</span><span class="cl">    <span class="n">VertexOutput</span> <span class="n">output</span><span class="p">;</span>
 </span></span><span class="line"><span class="ln">30</span><span class="cl">    <span class="n">output</span><span class="p">.</span><span class="n">position</span> <span class="o">=</span> <span class="n">position</span><span class="p">;</span>
@@ -358,9 +358,7 @@ necessary.</p>
 
 
 
-
 <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "573d419e6228428e91497ea835107a93"}'></script>
-<script defer src='bubbles.js'></script>
 
   </footer>
 

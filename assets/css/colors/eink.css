@@ -5,9 +5,9 @@
   --code-background-light: rgb(255, 255, 255);
   --code-border-light: rgb(0, 0, 0);
 
-  --content-primary-dark: rgb(0, 255, 0);
-  --content-secondary-dark: rgb(0, 255, 0);
-  --background-dark: rgb(0, 0, 0);
-  --code-background-dark: rgb(0, 0, 0);
-  --code-border-dark: rgb(0, 255, 0);
+  --content-primary-dark: lawngreen;
+  --content-secondary-dark: lime;
+  --background-dark: darkblue;
+  --code-background-dark: black;
+  --code-border-dark: lightseagreen;
 }
