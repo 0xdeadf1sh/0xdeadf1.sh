@@ -21,3 +21,17 @@ img {
 pre, code {
     font-size: 0.8em;
 }
+
+img[src$='#center'] {
+  display: block;
+  margin: 1.0rem auto;
+}
+
+figure {
+    .img-container {
+        aspect-ratio: 0;
+        max-height: auto;
+        width: auto;
+        margin-inline: auto;
+    }
+}

@@ -10,7 +10,7 @@ readTime = true
 
 <!--more-->
 
-![No VRAM](./img/no_vram.jpg#small)
+![No VRAM](./img/no_vram.jpg#center)
 
 I have seen a shader like this too often:
 

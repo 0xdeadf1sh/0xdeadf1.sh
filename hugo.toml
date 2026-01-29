@@ -14,6 +14,9 @@ colorPalette = 'eink'
 hideHeader = true
 faviconPath = '/'
 
+mermaidTheme = 'dark'
+mermaidDarkTheme = 'dark'
+
 homeIntroTitle = ''
 homeIntroContent = """
 
