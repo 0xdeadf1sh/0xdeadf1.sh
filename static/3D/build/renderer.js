@@ -1,5 +1,5 @@
 import * as WGPUtils from "webgpu-utils";
-import Stats from "stats-js";
+import * as Stats from "stats-js";
 import * as DatGUI from "dat.gui";
 export class D3Exception {
     m_class;
@@ -283,7 +283,7 @@ export class D3Renderer {
         this.m_device.queue.submit(buffers);
     }
     render(callback) {
-        const stats = new Stats();
+        const stats = new Stats.Stats();
         stats.showPanel(0);
         document.body.appendChild(stats.dom);
         const renderInternal = () => {

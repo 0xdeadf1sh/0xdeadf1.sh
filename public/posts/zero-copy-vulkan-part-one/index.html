@@ -45,8 +45,8 @@
   <meta property="og:locale" content="en_us">
   <meta property="og:type" content="article">
     <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2026-01-28T11:22:45+04:00">
-    <meta property="article:modified_time" content="2026-01-28T11:22:45+04:00">
+    <meta property="article:published_time" content="2026-02-12T11:22:45+04:00">
+    <meta property="article:modified_time" content="2026-02-12T11:22:45+04:00">
     <meta property="article:tag" content="Optimization">
     <meta property="article:tag" content="Vulkan">
 
@@ -61,7 +61,7 @@
 
 
 
-<link rel="stylesheet" href="/assets/combined.min.3174ef32b1d541da978f49137ce0c97ec363326d4a4b22bf67276f2ca8b9a66b.css" media="all">
+<link rel="stylesheet" href="/assets/combined.min.3154e272c200b271fcc1317888f95b27566a03064153f75472424a6693ee234f.css" media="all">
 
 
 
@@ -106,7 +106,7 @@
         <a href="/posts/zero-copy-vulkan-part-one/">Zero Copy Vulkan (Part 1: Input)</a></div>
 
 
-<div >
+<div  class="autonumber" >
   <article>
     <header class="single-intro-container">
         
@@ -117,8 +117,8 @@
           <div>
             
             <p class="single-date">
-              <time datetime="2026-01-28T11:22:45&#43;04:00">January 28, 2026</time>
-              &nbsp; · &nbsp;1 min read
+              <time datetime="2026-02-12T11:22:45&#43;04:00">February 12, 2026</time>
+              &nbsp; · &nbsp;4 min read
             </p>
           </div>
         </div>
@@ -134,12 +134,122 @@
     <a href="https://notbyai.fyi/" target="_blank">
         <img src="/Written-By-a-Human-Not-By-AI-Badge-black.svg" style="display: inline; width: 150px; height: auto; margin: 40px 0 0 0; padding: 0;" />
     </a>
+      <aside class="toc">
+        <p><strong>Table of contents</strong></p>
+        <nav id="TableOfContents">
+  <ul>
+    <li><a href="#to-memcpy-or-not-to-memcpy-that-is-the-question">To memcpy(), or not to memcpy(), that is the question</a>
+      <ul>
+        <li><a href="#living-on-the-edge">Living on the edge</a></li>
+        <li><a href="#installing-armbian">Installing Armbian</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+      </aside>
     
     <div class="single-content">
-      <h2 class="heading" id="memcpy-is-evil">
-  memcpy is evil
-  <a class="anchor" href="#memcpy-is-evil">#</a>
+      <h2 class="heading" id="to-memcpy-or-not-to-memcpy-that-is-the-question">
+  To memcpy(), or not to memcpy(), that is the question
+  <a class="anchor" href="#to-memcpy-or-not-to-memcpy-that-is-the-question">#</a>
 </h2>
+<h3 class="heading" id="living-on-the-edge">
+  Living on the edge
+  <a class="anchor" href="#living-on-the-edge">#</a>
+</h3>
+<p>This is the first of a two-part series about using Vulkan more efficiently (with respect to memory operations).
+It&rsquo;s called &ldquo;Part 1: Input&rdquo; because we will concern ourselves mainly with feeding the GPU; the second part
+will be called &ldquo;Part 2: Output&rdquo;, where we will extract the rendered image and then do something with it
+(e.g. save it to disk, or stream it in the local network, etc., it&rsquo;s up to you).</p>
+<p>To follow this tutorial you will need a Vulkan-capable GPU. I will be using <a href="https://docs.banana-pi.org/en/BPI-M7/BananaPi_BPI-M7">BananaPI M7</a>
+since it has <a href="https://developer.arm.com/Processors/Mali-G610">ARM Mali-G610</a> that can run Vulkan 1.4 applications.</p>
+<blockquote>
+<p>Note: If you visit the link above you will see that the specification mentions Vulkan 1.2 as the most recent supported version,
+but in this post we will use Mesa&rsquo;s <a href="https://docs.mesa3d.org/drivers/panfrost.html">Panfrost</a> driver, which enables Vulkan 1.4.
+I will also show how you can compile your own Vulkan drivers so that you get to enjoy the latest improvements and bug fixes
+(not to mention being able to put breakpoints in the driver and observing what&rsquo;s happening under the hood&mdash;something that is
+significantly harder to do with an OpenGL driver).</p>
+</blockquote>
+<p>Another reason for choosing BananaPI M7 is that the sort of optimization that we will be implementing is done most often in edge
+devices, where the device needs to <strong>consume</strong> some data produced by a sensor (or multiple sensors), do some computations, and
+<strong>produce</strong> the final output to be redirected somewhere else. Below is an image of M7 next to an actual banana:</p>
+<p>
+
+
+
+
+
+
+
+
+
+
+
+<figure class="">
+
+    
+    
+      
+        <div class="img-container" style="--w: 1600; --h: 720;">
+            <img loading="lazy" alt="BananaPI M7 next to a real banana" src="/posts/img/bananapim7.jpeg" width="1600" height="720">
+        </div>
+      
+    
+
+    
+    <div class="caption-container">
+        <figcaption> Banana for scale </figcaption>
+    </div>
+    
+</figure>
+</p>
+<p>This thing is <strong>small</strong>. It also comes with a <a href="https://rockchips.net/product/rk3588/">Rockchip SoC (RK3588)</a>
+which, in addition to a GPU, also gives us an NPU, octa-core CPU,
+and specialized hardware for image/video processing. We won&rsquo;t use the NPU (that will be another post in the future), but we <em>will</em>
+use the hardware for encoding/decoding video frames, and of course Vulkan for doing the actual processing.</p>
+<h3 class="heading" id="installing-armbian">
+  Installing Armbian
+  <a class="anchor" href="#installing-armbian">#</a>
+</h3>
+<p>First, download the Armbian image for BananaPI M7 <a href="https://www.armbian.com/bananapi-m7/">here</a>. Make sure to select the BSP kernel
+version, because we will need the appropriate kernel drivers for hardware acceleration. You may use the minimal version or an image
+file that comes preinstalled with a desktop environment. I will be using <code>Armbian 26.2.1 Gnome</code>; if you use something else, the instructions
+may be different&mdash;you will be <strong>on your own</strong>.</p>
+<blockquote>
+<p>Note: In this tutorial we will render the GPU&rsquo;s output onto a window, which you won&rsquo;t have if you install the minimal version of Armbian.
+Don&rsquo;t lose hope&mdash;you may use <a href="https://github.com/cage-kiosk/cage">cage</a>, which will <em>give</em> you a &ldquo;window&rdquo; when you run your Vulkan app
+from tty. You don&rsquo;t need to compile <code>cage</code>, running <code>sudo apt install cage</code> is sufficient.</p>
+</blockquote>
+<p>Flash the downloaded image to an SD card, for which you may use Armbian&rsquo;s own <a href="https://github.com/armbian/imager/releases">flasher utility</a>,
+or <a href="https://bztsrc.gitlab.io/usbimager/">USBImager</a>. Then insert the SD card to BananaPI and let it boot. Follow the on-screen instructions.
+Once you are presented with a GUI (or a tty console if you installed the minimal version), you will need to flash the image to internal storage
+(which in my case is an eMMC storage). First, run the <code>lsblk</code> command to see a list of devices:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln"> 1</span><span class="cl">NAME         MAJ:MIN RM  SIZE RO TYPE MOUNTPOINTS
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl">mmcblk1      179:0    <span class="m">0</span> 29.7G  <span class="m">0</span> disk 
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl">└─mmcblk1p1  179:1    <span class="m">0</span> 29.4G  <span class="m">0</span> part /var/log.hdd
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">                                      /
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl">mmcblk0      179:32   <span class="m">0</span> 58.2G  <span class="m">0</span> disk 
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">└─mmcblk0p1  179:33   <span class="m">0</span> 57.6G  <span class="m">0</span> part 
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">mmcblk0boot0 179:64   <span class="m">0</span>    4M  <span class="m">1</span> disk 
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">mmcblk0boot1 179:96   <span class="m">0</span>    4M  <span class="m">1</span> disk 
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">zram0        252:0    <span class="m">0</span>  3.9G  <span class="m">0</span> disk <span class="o">[</span>SWAP<span class="o">]</span>
+</span></span><span class="line"><span class="ln">10</span><span class="cl">zram1        252:1    <span class="m">0</span>   50M  <span class="m">0</span> disk /var/log
+</span></span><span class="line"><span class="ln">11</span><span class="cl">zram2        252:2    <span class="m">0</span>    0B  <span class="m">0</span> disk</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p><code>/dev/mmcblk1</code> is the SD card, <code>/dev/mmcblk0</code> is the internal eMMC storage. Flash the armbian to eMMC using:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl">sudo armbian-install /dev/mmcblk0</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>Then choose <code>Boot from eMMC - system on eMMC</code> option in installer&rsquo;s menu.</p>
+<blockquote>
+<p>Note: I chose ext4 as the filesystem, and I don&rsquo;t think it matters for our case, but if you get weird errors/bugs in the tutorial,
+you may <a href="mailto:0xdeadf1sh@tuta.io">email</a> me.</p>
+</blockquote>
+<p>Once the script finishes, it will ask us to power off the device. We will oblige. Before booting it up again, remove the SD card
+from Bananapi.</p>
     </div>
   </article>
 
@@ -160,8 +270,8 @@
             <div class="single-pagination-container-prev">
                 <div class="single-pagination-text">←</div>
                 <div class="single-pagination-text">
-                    <a href="/posts/quantize-your-attributes/">
-                        Quantize Your Attributes!
+                    <a href="/posts/are-you-living-in-an-encrypted-simulation/">
+                        Are you living in an encrypted simulation?
                     </a>
                 </div>
             </div>
@@ -169,15 +279,6 @@
         </div>
 
         <div class="single-pagination-next">
-            
-            <div class="single-pagination-container-next">
-                <div class="single-pagination-text">
-                    <a href="/posts/are-you-living-in-an-encrypted-simulation/">
-                        Are you living in an encrypted simulation?
-                    </a>
-                </div>
-                <div class="single-pagination-text">→</div>
-            </div>
             
         </div>
 

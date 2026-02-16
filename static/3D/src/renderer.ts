@@ -6,7 +6,7 @@
 ///////////////////////////// DEPENDENCIES ////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 import * as WGPUtils from "webgpu-utils";
-import Stats from "stats-js";
+import * as Stats from "stats-js";
 import * as DatGUI from "dat.gui";
 
 ///////////////////////////////////////////////////////////////////////////
@@ -16,20 +16,20 @@ export class D3Exception {
 
     ///////////////////////////////////////////////////////////////////////////
     public constructor(private m_class: string,
-                       private m_function: string,
-                       private m_msg: string) {}
+        private m_function: string,
+        private m_msg: string) { }
 
     ///////////////////////////////////////////////////////////////////////////
     public toString(): string {
         return `D3Exception (class: ${this.m_class}) ` +
-                           `(function: ${this.m_function}) ` +
-                           `(message: ${this.m_msg})`;
+            `(function: ${this.m_function}) ` +
+            `(message: ${this.m_msg})`;
     }
 
     ///////////////////////////////////////////////////////////////////////////
-    public getClass(): string       { return this.m_class; }
-    public getFunction(): string    { return this.m_function; }
-    public getMessage(): string     { return this.m_msg; }
+    public getClass(): string { return this.m_class; }
+    public getFunction(): string { return this.m_function; }
+    public getMessage(): string { return this.m_msg; }
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -38,16 +38,16 @@ export class D3Exception {
 export class D3Logger {
 
     ///////////////////////////////////////////////////////////////////////////
-    private constructor() {}
+    private constructor() { }
 
     ///////////////////////////////////////////////////////////////////////////
     private static getTimeString(): string {
         const now = new Date();
         const timeString = `[D3Log] ` +
-                           `[${now.getHours()}` +
-                           `:${now.getMinutes()}` +
-                           `:${now.getSeconds()}` +
-                           `:${now.getMilliseconds()}]`;
+            `[${now.getHours()}` +
+            `:${now.getMinutes()}` +
+            `:${now.getSeconds()}` +
+            `:${now.getMilliseconds()}]`;
         return timeString;
     }
 
@@ -80,8 +80,8 @@ export class D3Utils {
         const response = await fetch(url);
         if (!response.ok) {
             throw new D3Exception("D3Utils",
-                                  "fetchText",
-                                  `could not fetch ${url}`);
+                "fetchText",
+                `could not fetch ${url}`);
         }
         return response.text();
     }
@@ -95,9 +95,9 @@ export class D3Utils {
         else if (e instanceof D3Exception) {
             exDiv.style.display = "block";
             exDiv.innerHTML = `<span id='d3exception'>!!! D3Exception !!!</span>` +
-                              `Class: ${e.getClass()} <br>` + 
-                              `Function: ${e.getFunction()} <br>` +
-                              `Message: ${e.getMessage()}`;
+                `Class: ${e.getClass()} <br>` +
+                `Function: ${e.getFunction()} <br>` +
+                `Message: ${e.getMessage()}`;
         }
         else {
             console.error(e);
@@ -106,18 +106,18 @@ export class D3Utils {
 
     ///////////////////////////////////////////////////////////////////////////
     public static packVec4F32ToU32(x: number,
-                                   y: number,
-                                   z: number,
-                                   w: number): number {
+        y: number,
+        z: number,
+        w: number): number {
         x = Math.round((Math.max(-1.0, Math.min(1.0, x)) * 127.0) & 0xFF);
         y = Math.round((Math.max(-1.0, Math.min(1.0, y)) * 127.0) & 0xFF);
         z = Math.round((Math.max(-1.0, Math.min(1.0, z)) * 127.0) & 0xFF);
         w = Math.round((Math.max(-1.0, Math.min(1.0, w)) * 127.0) & 0xFF);
 
-        return (x <<  0 |
-                y <<  8 |
-                z << 16 |
-                w << 24) >>> 0;
+        return (x << 0 |
+            y << 8 |
+            z << 16 |
+            w << 24) >>> 0;
     }
 }
 
@@ -139,7 +139,7 @@ export class D3Renderer {
     private readonly m_versionPatch: number = 0;
 
     ///////////////////////////////////////////////////////////////////////////
-    private m_lastTime: number              = 0;
+    private m_lastTime: number = 0;
 
     ///////////////////////////////////////////////////////////////////////////
     private readonly m_devUI: DatGUI.GUI;
@@ -149,11 +149,11 @@ export class D3Renderer {
 
     ///////////////////////////////////////////////////////////////////////////
     public static async create(canvasId: string,
-                               deviceLostCallback: (reason: GPUDeviceLostReason) => void): Promise<D3Renderer> {
+        deviceLostCallback: (reason: GPUDeviceLostReason) => void): Promise<D3Renderer> {
         if (!navigator.gpu) {
             throw new D3Exception("D3Renderer",
-                                  "create",
-                                  "WebGPU not supported");
+                "create",
+                "WebGPU not supported");
         }
 
         const adapterOptions: GPURequestAdapterOptions = {
@@ -166,8 +166,8 @@ export class D3Renderer {
         const adapter = await navigator.gpu.requestAdapter(adapterOptions);
         if (!adapter) {
             throw new D3Exception("D3Renderer",
-                                  "create",
-                                  "requestAdapter() failed");
+                "create",
+                "requestAdapter() failed");
         }
 
         adapter.info.device && D3Logger.info(`Device: ${adapter.info.device}`);
@@ -190,8 +190,8 @@ export class D3Renderer {
         const device = await adapter.requestDevice(deviceDescriptor);
         if (!device) {
             throw new D3Exception("D3Renderer",
-                                  "create",
-                                  "requestDevice() failed");
+                "create",
+                "requestDevice() failed");
         }
 
         device.lost.then(info => {
@@ -201,15 +201,15 @@ export class D3Renderer {
         const canvas = document.getElementById(canvasId);
         if (!canvas) {
             throw new D3Exception("D3Renderer",
-                                  "create",
-                                  `canvas id=${canvasId} not found`);
+                "create",
+                `canvas id=${canvasId} not found`);
         }
 
         const ctx = (canvas as HTMLCanvasElement).getContext("webgpu");
         if (!ctx) {
             throw new D3Exception("D3Renderer",
-                                  "create",
-                                  "getContext('webgpu') failed");
+                "create",
+                "getContext('webgpu') failed");
         }
 
         const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
@@ -224,21 +224,21 @@ export class D3Renderer {
         ctx.configure(config);
 
         return new D3Renderer(navigator.gpu,
-                              adapter,
-                              device,
-                              canvas as HTMLCanvasElement,
-                              ctx);
+            adapter,
+            device,
+            canvas as HTMLCanvasElement,
+            ctx);
     }
 
     ///////////////////////////////////////////////////////////////////////////
     private constructor(private m_gpu: GPU,
-                        private m_adapter: GPUAdapter,
-                        private m_device: GPUDevice,
-                        private m_canvas: HTMLCanvasElement,
-                        private m_ctx: GPUCanvasContext) {
+        private m_adapter: GPUAdapter,
+        private m_device: GPUDevice,
+        private m_canvas: HTMLCanvasElement,
+        private m_ctx: GPUCanvasContext) {
 
         this.m_state = {
-            m_clearColor: [ 10, 20, 10, 1.0 ],
+            m_clearColor: [10, 20, 10, 1.0],
         };
 
         this.m_devUI = new DatGUI.GUI({ name: "D3Renderer" });
@@ -261,8 +261,8 @@ export class D3Renderer {
             .domElement.style.pointerEvents = "none";
 
         info.add(this.m_canvas, "width")
-             .listen()
-             .domElement.style.pointerEvents = "none";
+            .listen()
+            .domElement.style.pointerEvents = "none";
 
         info.add(this.m_canvas, "height")
             .listen()
@@ -283,7 +283,7 @@ export class D3Renderer {
 
     ///////////////////////////////////////////////////////////////////////////
     public async createShaderModule(label: string,
-                                    shaderSrc: string): Promise<GPUShaderModule> {
+        shaderSrc: string): Promise<GPUShaderModule> {
         const desc: GPUShaderModuleDescriptor = {
             label,
             code: shaderSrc,
@@ -296,29 +296,29 @@ export class D3Renderer {
             switch (info.type) {
                 case "info":
                     D3Logger.info(`\n` +
-                                  `LineNo: ${info.lineNum}\n` +
-                                  `LinePos: ${info.linePos}\n` +
-                                  `Offset: : ${info.offset}\n` +
-                                  `Length: ${info.length}\n` +
-                                  `${info.message}`);
-                   break;
+                        `LineNo: ${info.lineNum}\n` +
+                        `LinePos: ${info.linePos}\n` +
+                        `Offset: : ${info.offset}\n` +
+                        `Length: ${info.length}\n` +
+                        `${info.message}`);
+                    break;
                 case "warning":
                     D3Logger.warn(`\n` +
-                                  `LineNo: ${info.lineNum}\n` +
-                                  `LinePos: ${info.linePos}\n` +
-                                  `Offset: : ${info.offset}\n` +
-                                  `Length: ${info.length}\n` +
-                                  `${info.message}`);
+                        `LineNo: ${info.lineNum}\n` +
+                        `LinePos: ${info.linePos}\n` +
+                        `Offset: : ${info.offset}\n` +
+                        `Length: ${info.length}\n` +
+                        `${info.message}`);
                     break;
                 case "error":
                     throw new D3Exception("D3Renderer",
-                                          "createShaderModule",
-                                          `\n` +
-                                          `LineNo: ${info.lineNum}\n` +
-                                          `LinePos: ${info.linePos}\n` +
-                                          `Offset: : ${info.offset}\n` +
-                                          `Length: ${info.length}\n` +
-                                          `${info.message}`);
+                        "createShaderModule",
+                        `\n` +
+                        `LineNo: ${info.lineNum}\n` +
+                        `LinePos: ${info.linePos}\n` +
+                        `Offset: : ${info.offset}\n` +
+                        `Length: ${info.length}\n` +
+                        `${info.message}`);
             }
         }
 
@@ -340,8 +340,8 @@ export class D3Renderer {
 
     ///////////////////////////////////////////////////////////////////////////
     public async createRenderPipeline(label: string,
-                                      shaderModule: GPUShaderModule,
-                                      targets: Iterable<GPUColorTargetState>): Promise<GPURenderPipeline> {
+        shaderModule: GPUShaderModule,
+        targets: Iterable<GPUColorTargetState>): Promise<GPURenderPipeline> {
 
         const desc: GPURenderPipelineDescriptor = {
             label,
@@ -362,9 +362,9 @@ export class D3Renderer {
 
     ///////////////////////////////////////////////////////////////////////////
     public createBuffer(label: string,
-                        size: number,
-                        usage: GPUBufferUsageFlags,
-                        mappedAtCreation: boolean): GPUBuffer {
+        size: number,
+        usage: GPUBufferUsageFlags,
+        mappedAtCreation: boolean): GPUBuffer {
         const desc: GPUBufferDescriptor = {
             label,
             size,
@@ -377,9 +377,9 @@ export class D3Renderer {
 
     ///////////////////////////////////////////////////////////////////////////
     public createBindGroup(label: string,
-                           bindGroupIndex: number,
-                           pipeline: GPUPipelineBase,
-                           buffers: Array<GPUBuffer>): GPUBindGroup {
+        bindGroupIndex: number,
+        pipeline: GPUPipelineBase,
+        buffers: Array<GPUBuffer>): GPUBindGroup {
 
         const entries: Array<GPUBindGroupEntry> = [];
         for (let i = 0; i < buffers.length; ++i) {
@@ -387,8 +387,8 @@ export class D3Renderer {
             const buff = buffers[i];
             if (!buff) {
                 throw new D3Exception("D3Renderer",
-                                      "createBindGroup",
-                                      `buffers[${i}] is null`);
+                    "createBindGroup",
+                    `buffers[${i}] is null`);
             }
 
             entries.push({
@@ -424,7 +424,7 @@ export class D3Renderer {
     ///////////////////////////////////////////////////////////////////////////
     public render(callback: (dt: number) => void): void {
 
-        const stats = new Stats();
+        const stats = new Stats.Stats();
         stats.showPanel(0);
         document.body.appendChild(stats.dom);
 
@@ -474,8 +474,8 @@ export class D3Renderer {
 
     ///////////////////////////////////////////////////////////////////////////
     public writeBuffer(buffer: GPUBuffer,
-                       offset: number,
-                       data: ArrayBuffer): void {
+        offset: number,
+        data: ArrayBuffer): void {
         this.m_device.queue.writeBuffer(buffer, offset, data);
     }
 
@@ -502,17 +502,17 @@ export class D3Renderer {
     ///////////////////////////////////////////////////////////////////////////
     public getClearColorNormalized(): Array<number> {
         const factor = 1.0 / 255;
-        return [ this.m_state.m_clearColor[0] ? this.m_state.m_clearColor[0] * factor : 0.0,
-                 this.m_state.m_clearColor[1] ? this.m_state.m_clearColor[1] * factor : 0.0,
-                 this.m_state.m_clearColor[2] ? this.m_state.m_clearColor[2] * factor : 0.0,
-                 this.m_state.m_clearColor[3] ? this.m_state.m_clearColor[3] * factor : 0.0 ];
+        return [this.m_state.m_clearColor[0] ? this.m_state.m_clearColor[0] * factor : 0.0,
+        this.m_state.m_clearColor[1] ? this.m_state.m_clearColor[1] * factor : 0.0,
+        this.m_state.m_clearColor[2] ? this.m_state.m_clearColor[2] * factor : 0.0,
+        this.m_state.m_clearColor[3] ? this.m_state.m_clearColor[3] * factor : 0.0];
     }
 
     ///////////////////////////////////////////////////////////////////////////
     public toString(): string {
         return `D3Renderer version: ${this.m_versionMajor}.` +
-                                   `${this.m_versionMinor}.` +
-                                   `${this.m_versionPatch}`;
+            `${this.m_versionMinor}.` +
+            `${this.m_versionPatch}`;
     }
 };
 
@@ -526,13 +526,13 @@ async function main() {
             switch (reason) {
                 case "destroyed":
                     D3Utils.showPrettyException(new D3Exception("(none)",
-                                                                "(deviceLostCallback)",
-                                                                "Device intentionally lost"));
+                        "(deviceLostCallback)",
+                        "Device intentionally lost"));
                     break;
                 case "unknown":
                     D3Utils.showPrettyException(new D3Exception("(none)",
-                                                                "(deviceLostCallback)",
-                                                                "Please reload the page"));
+                        "(deviceLostCallback)",
+                        "Please reload the page"));
                     break;
             }
         });
@@ -542,70 +542,70 @@ async function main() {
         const basicShaderSource = await D3Utils.fetchText("./shaders/basic.wgsl");
         const basicModule = await renderer.createShaderModule("D3_SHADER_BASIC", basicShaderSource);
         const basicPipeline = await renderer.createRenderPipeline("D3_SHADER_BASIC_PIPELINE",
-                                                                  basicModule,
-                                                                  [{ format: canvasFormat }]);
+            basicModule,
+            [{ format: canvasFormat }]);
 
         const defs = WGPUtils.makeShaderDataDefinitions(basicShaderSource);
 
         const { size: vertexSSBOSize } =
             WGPUtils.getSizeAndAlignmentOfUnsizedArrayElement(defs.storages["vertices"] as WGPUtils.VariableDefinition);
-        const { size: transformSSBOSize  }
-        = WGPUtils.getSizeAndAlignmentOfUnsizedArrayElement(defs.storages["transforms"] as WGPUtils.VariableDefinition);
+        const { size: transformSSBOSize }
+            = WGPUtils.getSizeAndAlignmentOfUnsizedArrayElement(defs.storages["transforms"] as WGPUtils.VariableDefinition);
 
         const vertexCount = 4;
         const vertexSSBOData = WGPUtils.makeStructuredView(defs.storages["vertices"] as WGPUtils.VariableDefinition,
-                                                           new ArrayBuffer(vertexCount * vertexSSBOSize));
+            new ArrayBuffer(vertexCount * vertexSSBOSize));
 
         const instanceCount = 2;
         const transformSSBOData = WGPUtils.makeStructuredView(defs.storages["transforms"] as WGPUtils.VariableDefinition,
-                                                              new ArrayBuffer(instanceCount * transformSSBOSize));
+            new ArrayBuffer(instanceCount * transformSSBOSize));
 
         vertexSSBOData.set([{
-            position: [ D3Utils.packVec4F32ToU32(-0.5, -0.5, 0.0, 1.0) ],
-            color: [ D3Utils.packVec4F32ToU32(1.0, 0.0, 0.0, 1.0) ]
+            position: [D3Utils.packVec4F32ToU32(-0.5, -0.5, 0.0, 1.0)],
+            color: [D3Utils.packVec4F32ToU32(1.0, 0.0, 0.0, 1.0)]
         }, {
-            position: [ D3Utils.packVec4F32ToU32(0.5, -0.5, 0.0, 1.0) ],
-            color: [ D3Utils.packVec4F32ToU32(0.0, 1.0, 0.0, 1.0) ]
+            position: [D3Utils.packVec4F32ToU32(0.5, -0.5, 0.0, 1.0)],
+            color: [D3Utils.packVec4F32ToU32(0.0, 1.0, 0.0, 1.0)]
         }, {
-            position: [ D3Utils.packVec4F32ToU32(-0.5, 0.5, 0.0, 1.0) ],
-            color: [ D3Utils.packVec4F32ToU32(0.0, 0.0, 1.0, 0.0) ]
+            position: [D3Utils.packVec4F32ToU32(-0.5, 0.5, 0.0, 1.0)],
+            color: [D3Utils.packVec4F32ToU32(0.0, 0.0, 1.0, 0.0)]
         }, {
-            position: [ D3Utils.packVec4F32ToU32(0.5, 0.5, 0.0, 1.0) ],
-            color: [ D3Utils.packVec4F32ToU32(1.0, 1.0, 0.0, 1.0) ]
+            position: [D3Utils.packVec4F32ToU32(0.5, 0.5, 0.0, 1.0)],
+            color: [D3Utils.packVec4F32ToU32(1.0, 1.0, 0.0, 1.0)]
         }]);
 
         transformSSBOData.set([{
-            offset: [ -0.25, 0.0, 0.0, 0.0 ]
+            offset: [-0.25, 0.0, 0.0, 0.0]
         }, {
-            offset: [ 0.25, 0.0, 0.0, 0.0 ]
+            offset: [0.25, 0.0, 0.0, 0.0]
         }]);
 
         const vertexSSBO = renderer.createBuffer("VertexSSBO",
-                                                 vertexSSBOData.arrayBuffer.byteLength,
-                                                 GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-                                                 false);
+            vertexSSBOData.arrayBuffer.byteLength,
+            GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+            false);
         renderer.writeBuffer(vertexSSBO, 0, vertexSSBOData.arrayBuffer);
 
 
         const transformSSBO = renderer.createBuffer("TransformSSBO",
-                                                   transformSSBOData.arrayBuffer.byteLength,
-                                                   GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-                                                   false);
+            transformSSBOData.arrayBuffer.byteLength,
+            GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+            false);
         renderer.writeBuffer(transformSSBO, 0, transformSSBOData.arrayBuffer);
 
         const eboData = new Uint16Array([
             0, 1, 2, 2, 1, 3,
         ]);
         const ebo = renderer.createBuffer("IndexBuffer",
-                                          eboData.byteLength,
-                                          GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
-                                          false);
+            eboData.byteLength,
+            GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
+            false);
         renderer.writeBuffer(ebo, 0, eboData.buffer);
 
         const bindGroup = renderer.createBindGroup("transform bind group",
-                                                   0,
-                                                   basicPipeline,
-                                                   [ transformSSBO, vertexSSBO ]);
+            0,
+            basicPipeline,
+            [transformSSBO, vertexSSBO]);
 
         renderer.render(dt => {
 
@@ -625,7 +625,7 @@ async function main() {
 
             const renderpassDesc: GPURenderPassDescriptor = {
                 label: "D3RenderpassDesc",
-                colorAttachments: [ colorAttachment ],
+                colorAttachments: [colorAttachment],
             };
 
             const cmdEncoder = renderer.createCmdEncoder("D3CmdEncoder");
@@ -638,7 +638,7 @@ async function main() {
             pass.end();
 
             const cmdBuffer = cmdEncoder.finish();
-            renderer.submitCommandBuffers([ cmdBuffer ]);
+            renderer.submitCommandBuffers([cmdBuffer]);
         });
     }
     catch (e) {
