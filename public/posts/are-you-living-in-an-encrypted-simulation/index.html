@@ -32,7 +32,7 @@
 
 <title>
     
-    Are you living in an encrypted simulation? | 0xdeadf1.sh
+    Are You Living In An Encrypted Simulation? | 0xdeadf1.sh
     
 </title>
 
@@ -40,7 +40,7 @@
 
 <meta property="og:url" content="http://localhost:1313/posts/are-you-living-in-an-encrypted-simulation/">
   <meta property="og:site_name" content="0xdeadf1.sh">
-  <meta property="og:title" content="Are you living in an encrypted simulation?">
+  <meta property="og:title" content="Are You Living In An Encrypted Simulation?">
   <meta property="og:description" content="low-level/high-performance/graphics/embedded/cryptography programming">
   <meta property="og:locale" content="en_us">
   <meta property="og:type" content="article">
@@ -62,7 +62,7 @@
 
 
 
-<link rel="stylesheet" href="/assets/combined.min.3154e272c200b271fcc1317888f95b27566a03064153f75472424a6693ee234f.css" media="all">
+<link rel="stylesheet" href="/assets/combined.min.25c968cb905672a176758108352bb96bd899cf0b9f23408e20d1665b8a0a9b02.css" media="all">
 
 
 
@@ -104,14 +104,14 @@
 
 
 <div class="breadcrumbs"><a href="/">~</a><span class="breadcrumbs-separator">/</span><a href="/posts/">Posts</a><span class="breadcrumbs-separator">/</span>
-        <a href="/posts/are-you-living-in-an-encrypted-simulation/">Are you living in an encrypted simulation?</a></div>
+        <a href="/posts/are-you-living-in-an-encrypted-simulation/">Are You Living In An Encrypted Simulation?</a></div>
 
 
-<div >
+<div  class="autonumber" >
   <article>
     <header class="single-intro-container">
         
-        <h1 class="single-title">Are you living in an encrypted simulation?</h1>
+        <h1 class="single-title">Are You Living In An Encrypted Simulation?</h1>
         
         <div class="single-subsummary">
           
@@ -141,7 +141,14 @@
         <p><strong>Table of contents</strong></p>
         <nav id="TableOfContents">
   <ul>
-    <li><a href="#the-hall-of-egress">The Hall of Egress</a></li>
+    <li><a href="#the-hall-of-egress">The Hall of Egress</a>
+      <ul>
+        <li><a href="#finn-the-human">Finn the Human</a></li>
+        <li><a href="#i-can-haz-many-forms">I Can Haz Many Forms?</a></li>
+        <li><a href="#throwing-dice-in-monte-carlo">Throwing Dice in Monte Carlo</a></li>
+        <li><a href="#a-slippery-slope">A Slippery Slope</a></li>
+      </ul>
+    </li>
     <li><a href="#bostroms-demon">Bostrom&rsquo;s Demon</a></li>
   </ul>
 </nav>
@@ -185,6 +192,10 @@
     
 </figure>
 </p>
+<h3 class="heading" id="finn-the-human">
+  Finn the Human
+  <a class="anchor" href="#finn-the-human">#</a>
+</h3>
 <p>There is an <a href="https://www.youtube.com/watch?v=tg7ovSctPX8">episode</a> of Adventure Time where the protagonist (Finn the Human)
 and his brother (Jake the Dog) find a mysterious dungeon&mdash;like an &ldquo;ancient secret temple&rdquo; (Finn&rsquo;s words, not mine).
 Finn enters first, but inadvertently steps on a trap, which seals the entrance shut. He is trapped.</p>
@@ -226,9 +237,13 @@ following letters etched on its surface: &ldquo;HALL OF EGRESS&rdquo;.</p>
 </figure>
 </p>
 <p>Despite how much force he applies, the door doesn&rsquo;t bulge (and Finn has enough strength to punch
-a <a href="https://www.youtube.com/watch?v=qXXcA68ZIlE">vampire</a> ten times his size). But then, through sheer luck, he has an
+a <a href="https://www.youtube.com/watch?v=qXXcA68ZIlE">vampire</a> more than ten times his size). But then, through sheer luck, he has an
 epiphany: the door disappears once he <strong>closes his eyes</strong>.</p>
-<p>There are other interesting problems where the solution is often to &ldquo;blindfold&rdquo; ourselves. For example, take
+<h3 class="heading" id="i-can-haz-many-forms">
+  I Can Haz Many Forms?
+  <a class="anchor" href="#i-can-haz-many-forms">#</a>
+</h3>
+<p>There are other interesting problems where one of the solutions is to &ldquo;blindfold&rdquo; oneself. For example, take
 the following piece of code:</p>
 <div class="code-block">
   <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="k">class</span> <span class="nc">Prokaryotic</span> <span class="p">{</span>
@@ -265,8 +280,8 @@ of its emphasis on performance and some important data structures that it provid
 We would like for both of them to evolve. Alas, the code that invokes evolution is duplicated. We have
 to store the organisms of different grades separately and call their <code>evolve</code> methods in their own respective loops.
 Worse, what if we discover some other life form that doesn&rsquo;t fit neatly in the above dichotomy?
-More duplication!</p>
-<p>C++&rsquo;s solution to this is <a href="https://en.wikipedia.org/wiki/Polymorphism_(computer_science)">polymorphism</a>:</p>
+More duplication! We prefer not to <a href="https://en.wikipedia.org/wiki/Don%27t_repeat_yourself">repeat ourselves</a>.</p>
+<p>C++ offers <a href="https://en.wikipedia.org/wiki/Polymorphism_(computer_science)">polymorphism</a>:</p>
 <div class="code-block">
   <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="k">class</span> <span class="nc">Grade</span> <span class="p">{</span>
 </span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="k">public</span><span class="o">:</span>
@@ -288,27 +303,27 @@ More duplication!</p>
 </span></span><span class="line"><span class="ln">18</span><span class="cl"><span class="p">};</span>
 </span></span><span class="line"><span class="ln">19</span><span class="cl">
 </span></span><span class="line"><span class="ln">20</span><span class="cl"><span class="n">eastl</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">Grade</span><span class="o">*&gt;</span> <span class="n">organisms</span><span class="p">{};</span>
-</span></span><span class="line"><span class="ln">21</span><span class="cl"><span class="k">for</span> <span class="p">(</span><span class="n">Grade</span><span class="o">*</span> <span class="nl">g</span> <span class="p">:</span> <span class="n">organisms</span><span class="p">)</span> <span class="p">{</span>
-</span></span><span class="line"><span class="ln">22</span><span class="cl">    <span class="n">g</span><span class="o">-&gt;</span><span class="n">evolve</span><span class="p">();</span>
+</span></span><span class="line"><span class="ln">21</span><span class="cl"><span class="k">for</span> <span class="p">(</span><span class="n">Grade</span><span class="o">*</span> <span class="nl">organism</span> <span class="p">:</span> <span class="n">organisms</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">22</span><span class="cl">    <span class="n">organism</span><span class="o">-&gt;</span><span class="n">evolve</span><span class="p">();</span>
 </span></span><span class="line"><span class="ln">23</span><span class="cl"><span class="p">}</span></span></span></code></pre></div>
   <button class="copy-code-button">copy</button>
 </div>
 <p>Our new loop is <strong>blind</strong>&mdash;in the sense that it no longer knows which grade of organism it
 operates on. When a new grade is discovered, the source code need not be duplicated.</p>
-<p>Polymorphism has a <a href="https://en.wikipedia.org/wiki/Closed-form_expression">closed-form</a> solution.
+<p>Polymorphism is a <a href="https://en.wikipedia.org/wiki/Closed-form_expression">closed-form</a> solution.
 In the case of C++, each class maintains a table of
-pointers to functions, and each instance of a class contains a pointer to the appropriate table.
+pointers to functions, and each instance of a class contains a pointer to that table.
 This way, when the <code>evolve</code> function is called, the instructions become:</p>
 <div class="code-block">
-  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-basic" data-lang="basic"><span class="line"><span class="ln">1</span><span class="cl"><span class="vg">FETCH</span><span class="w">       </span><span class="vg">VTBL</span>
-</span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="vg">LOOKUP</span><span class="w">      </span><span class="kr">FUNCTION</span><span class="w"> </span><span class="s2">&#34;evolve&#34;</span><span class="w"> </span><span class="vg">in</span><span class="w"> </span><span class="vg">VTBL</span>
-</span></span><span class="line"><span class="ln">3</span><span class="cl"><span class="kr">CALL</span><span class="w">        </span><span class="vg">evolve</span></span></span></code></pre></div>
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-basic" data-lang="basic"><span class="line"><span class="ln">1</span><span class="cl"><span class="vg">FETCH</span><span class="w">       </span><span class="vg">VTBL</span><span class="w">                            </span><span class="p">;</span><span class="w"> </span><span class="vg">fetch</span><span class="w"> </span><span class="vg">the</span><span class="w"> </span><span class="vg">virtual</span><span class="w"> </span><span class="vg">function</span><span class="w"> </span><span class="vg">table</span>
+</span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="vg">LOOKUP</span><span class="w">      </span><span class="kr">FUNCTION</span><span class="w"> </span><span class="s2">&#34;evolve&#34;</span><span class="w"> </span><span class="vg">in</span><span class="w"> </span><span class="vg">VTBL</span><span class="w">       </span><span class="p">;</span><span class="w"> </span><span class="vg">look</span><span class="w"> </span><span class="vg">up</span><span class="w"> </span><span class="vg">the</span><span class="w"> </span><span class="vg">location</span><span class="w"> </span><span class="vg">of</span><span class="w"> </span><span class="s2">&#34;evolve&#34;</span>
+</span></span><span class="line"><span class="ln">3</span><span class="cl"><span class="kr">CALL</span><span class="w">        </span><span class="vg">evolve</span><span class="w">                          </span><span class="p">;</span><span class="w"> </span><span class="vg">invoke</span><span class="w"> </span><span class="vg">the</span><span class="w"> </span><span class="vg">procedure</span></span></span></code></pre></div>
   <button class="copy-code-button">copy</button>
 </div>
 <p>We call this <a href="https://en.wikipedia.org/wiki/Dynamic_dispatch">dynamic dispatch</a>. Although powerful,
 one must be careful not to overuse it. There are two indirections here:</p>
 <ol>
-<li>We dereference the pointer to the function table.</li>
+<li>We dereference the pointer to the virtual function table.</li>
 <li>Then, we dereference the address of the function to begin executing its instructions.</li>
 </ol>
 <p>Dynamic dispatch introduces sequential dependency: the CPU can&rsquo;t know in advance which function
@@ -317,9 +332,13 @@ if the function (by which I mean the machine instructions that make up the funct
 <code>LOOKUP</code> instruction isn&rsquo;t already cached, the pipeline stalls. Like the CPU,
 the compiler also can&rsquo;t determine which function will be called, so
 <a href="https://en.wikipedia.org/wiki/Inline_expansion">inlining</a> is hard.</p>
+<h3 class="heading" id="throwing-dice-in-monte-carlo">
+  Throwing Dice in Monte Carlo
+  <a class="anchor" href="#throwing-dice-in-monte-carlo">#</a>
+</h3>
 <p>Not all problems have closed-form solutions. What if we wanted to calculate the value of $\pi$?
 There is no function with a fixed set of instructions that can calculate $\pi$, but there exist
-functions each with a fixed set of instructions such that when computed <strong>iteratively</strong>, can
+instructions such that when invoked <strong>iteratively</strong>, can
 obtain better and better approximations of $\pi$. Here&rsquo;s
 <a href="https://en.wikipedia.org/wiki/Srinivasa_Ramanujan">Ramanujan&rsquo;s</a> solution to this problem:</p>
 <p>$$
@@ -357,7 +376,7 @@ another possible solution that uses random sampling. First, let us draw a unit c
 </figure>
 </p>
 <p>It is not perfectly inscribed because I drew this quickly using <a href="https://apps.kde.org/kolourpaint/">KolourPaint</a>,
-but you get the idea. Now suppose that we start randomly putting points inside the square:</p>
+but you get the idea. Now suppose that we start putting random points inside the square:</p>
 <p>
 
 
@@ -388,7 +407,7 @@ but you get the idea. Now suppose that we start randomly putting points inside t
 </figure>
 </p>
 <p>What&rsquo;s the probability of a point landing within a circle? Well, since the radius of the circle is 1, the area of
-the square is 4, and the area of the circle is $\pi$. So the probability of a point landing in the circle is
+the square is 4, and the area of the circle is $\pi$. So, the probability of a point landing in the circle is
 $\pi / 4$. We can exploit this to write a program that approximates the digits of $\pi$:</p>
 <div class="code-block">
   <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;random&gt;</span><span class="cp">
@@ -424,7 +443,7 @@ $\pi / 4$. We can exploit this to write a program that approximates the digits o
 </span></span><span class="line"><span class="ln">31</span><span class="cl"><span class="p">}</span></span></span></code></pre></div>
   <button class="copy-code-button">copy</button>
 </div>
-<p>Here we begin with the number of iterations set to 1, and then increase its magnitude up to 7 orders.
+<p>Here we begin with the number of iterations set to 1, and then increase its magnitude by up to 7 orders.
 Because we know the probability of a point being inside the circle is $\pi / 4$, all we need to do is
 generate a bunch of points and then divide the number of points inside the circle by the total number of
 points. We then multiply this number (defined as <code>k</code>) with 4 to get the approximation of $\pi$.</p>
@@ -440,15 +459,15 @@ points. We then multiply this number (defined as <code>k</code>) with 4 to get t
 </span></span><span class="line"><span class="ln">8</span><span class="cl">The value of pi is 3.141742468		<span class="o">(</span><span class="nv">iterations</span> <span class="o">=</span> 10000000<span class="o">)</span></span></span></code></pre></div>
   <button class="copy-code-button">copy</button>
 </div>
-<p>The first time our algorithm is run, it just happened so that our point landed in the circle, causing
+<p>The first time our algorithm was run, it just happened so that our point landed in the circle, causing
 <code>k</code> to equal 1.0. If you run this code, there is about 21.46% chance that you will get 0.0 for the first
 value. But that doesn&rsquo;t matter, because as the number of iterations is increased, everyone running this
 code will get closer and closer to the true value of $\pi$&mdash;well, at least to the extent that the machine is capable of.
 Floating-point numbers have finite precision, and at some point errors accumulated through repeated calculations
-will start to work against us.</p>
-<p>At the time of writing this article humanity has computed up to <a href="https://en.wikipedia.org/wiki/Chronology_of_computation_of_pi">314 trillion</a>
-digits of $\pi$, but the point is that none of these approximations is the <strong>true</strong> value of $\pi$, because the actual value is an infinite sequence
-of non-repeating digits.</p>
+will start to work against us. Luckily we have developed <a href="https://en.wikipedia.org/wiki/Category:Pi_algorithms">much better algorithms</a>.</p>
+<p>At the time of writing this article, humanity has computed up to <a href="https://en.wikipedia.org/wiki/Chronology_of_computation_of_pi">314 trillion</a>
+digits of $\pi$, but none of these approximations is the <strong>true</strong> value of $\pi$, because the actual value is an infinite sequence
+of non-repeating digits. Alas, we cannot express infinitudes in a universe of finitudes.</p>
 <p>Below is the graph of our progress:</p>
 <p>
 
@@ -485,6 +504,11 @@ of non-repeating digits.</p>
 we are able to come up with instructions that take us there iteratively&mdash;<strong>and</strong> we are confident that these instructions work,
 lest we would have needed to compare the results of our algorithm with the true value of $\pi$, which we don&rsquo;t have access to.</p>
 <p>But what happens when we <strong>don&rsquo;t</strong> know what the solution space looks like?</p>
+<h3 class="heading" id="a-slippery-slope">
+  A Slippery Slope
+  <a class="anchor" href="#a-slippery-slope">#</a>
+</h3>
+<p>Eyes closed, Finn enters the maze-like tunnel. His first attempt almost gets him killed.</p>
 <h2 class="heading" id="bostroms-demon">
   Bostrom&rsquo;s Demon
   <a class="anchor" href="#bostroms-demon">#</a>

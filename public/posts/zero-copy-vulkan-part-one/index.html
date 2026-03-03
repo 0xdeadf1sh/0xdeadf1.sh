@@ -45,8 +45,8 @@
   <meta property="og:locale" content="en_us">
   <meta property="og:type" content="article">
     <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2026-02-12T11:22:45+04:00">
-    <meta property="article:modified_time" content="2026-02-12T11:22:45+04:00">
+    <meta property="article:published_time" content="2026-03-02T11:22:45+04:00">
+    <meta property="article:modified_time" content="2026-03-02T11:22:45+04:00">
     <meta property="article:tag" content="Optimization">
     <meta property="article:tag" content="Vulkan">
 
@@ -61,7 +61,7 @@
 
 
 
-<link rel="stylesheet" href="/assets/combined.min.3154e272c200b271fcc1317888f95b27566a03064153f75472424a6693ee234f.css" media="all">
+<link rel="stylesheet" href="/assets/combined.min.25c968cb905672a176758108352bb96bd899cf0b9f23408e20d1665b8a0a9b02.css" media="all">
 
 
 
@@ -117,8 +117,8 @@
           <div>
             
             <p class="single-date">
-              <time datetime="2026-02-12T11:22:45&#43;04:00">February 12, 2026</time>
-              &nbsp; · &nbsp;4 min read
+              <time datetime="2026-03-02T11:22:45&#43;04:00">March 2, 2026</time>
+              &nbsp; · &nbsp;10 min read
             </p>
           </div>
         </div>
@@ -138,29 +138,34 @@
         <p><strong>Table of contents</strong></p>
         <nav id="TableOfContents">
   <ul>
-    <li><a href="#to-memcpy-or-not-to-memcpy-that-is-the-question">To memcpy(), or not to memcpy(), that is the question</a>
+    <li><a href="#memcpy-is-slow">memcpy() is slow?</a>
       <ul>
         <li><a href="#living-on-the-edge">Living on the edge</a></li>
         <li><a href="#installing-armbian">Installing Armbian</a></li>
+        <li><a href="#installing-dependencies">Installing dependencies</a></li>
+        <li><a href="#the-problem">The Problem</a></li>
+        <li><a href="#setting-up-the-camera">Setting Up The Camera</a></li>
+        <li><a href="#setting-up-the-project">Setting Up The Project</a></li>
       </ul>
     </li>
+    <li><a href="#memcpy-is-fast">memcpy() is fast?</a></li>
   </ul>
 </nav>
       </aside>
     
     <div class="single-content">
-      <h2 class="heading" id="to-memcpy-or-not-to-memcpy-that-is-the-question">
-  To memcpy(), or not to memcpy(), that is the question
-  <a class="anchor" href="#to-memcpy-or-not-to-memcpy-that-is-the-question">#</a>
+      <h2 class="heading" id="memcpy-is-slow">
+  memcpy() is slow?
+  <a class="anchor" href="#memcpy-is-slow">#</a>
 </h2>
 <h3 class="heading" id="living-on-the-edge">
   Living on the edge
   <a class="anchor" href="#living-on-the-edge">#</a>
 </h3>
-<p>This is the first of a two-part series about using Vulkan more efficiently (with respect to memory operations).
+<p>This is the first of a two-part series about using Vulkan more efficiently in embedded systems.
 It&rsquo;s called &ldquo;Part 1: Input&rdquo; because we will concern ourselves mainly with feeding the GPU; the second part
-will be called &ldquo;Part 2: Output&rdquo;, where we will extract the rendered image and then do something with it
-(e.g. save it to disk, or stream it in the local network, etc., it&rsquo;s up to you).</p>
+will be called &ldquo;Part 2: Output&rdquo;, where we will extract the processed image and then do something with it
+(e.g. save it to disk, or stream it to the local network, etc., it&rsquo;s up to you).</p>
 <p>To follow this tutorial you will need a Vulkan-capable GPU. I will be using <a href="https://docs.banana-pi.org/en/BPI-M7/BananaPi_BPI-M7">BananaPI M7</a>
 since it has <a href="https://developer.arm.com/Processors/Mali-G610">ARM Mali-G610</a> that can run Vulkan 1.4 applications.</p>
 <blockquote>
@@ -170,9 +175,10 @@ I will also show how you can compile your own Vulkan drivers so that you get to 
 (not to mention being able to put breakpoints in the driver and observing what&rsquo;s happening under the hood&mdash;something that is
 significantly harder to do with an OpenGL driver).</p>
 </blockquote>
-<p>Another reason for choosing BananaPI M7 is that the sort of optimization that we will be implementing is done most often in edge
-devices, where the device needs to <strong>consume</strong> some data produced by a sensor (or multiple sensors), do some computations, and
-<strong>produce</strong> the final output to be redirected somewhere else. Below is an image of M7 next to an actual banana:</p>
+<p>Another reason for choosing BananaPI M7 is that the sort of optimization that we will be implementing is done most often in embedded
+devices, where the device needs to <strong>consume</strong> some data produced by a sensor (or multiple sensors), <strong>process</strong> it, and
+<strong>produce</strong> the final output to be redirected somewhere else.</p>
+<p>Below is an image of M7 next to an actual banana:</p>
 <p>
 
 
@@ -203,10 +209,10 @@ devices, where the device needs to <strong>consume</strong> some data produced b
     
 </figure>
 </p>
-<p>This thing is <strong>small</strong>. It also comes with a <a href="https://rockchips.net/product/rk3588/">Rockchip SoC (RK3588)</a>
+<p>This thing is <strong>small</strong>. It comes with a <a href="https://rockchips.net/product/rk3588/">Rockchip SoC (RK3588)</a>
 which, in addition to a GPU, also gives us an NPU, octa-core CPU,
 and specialized hardware for image/video processing. We won&rsquo;t use the NPU (that will be another post in the future), but we <em>will</em>
-use the hardware for encoding/decoding video frames, and of course Vulkan for doing the actual processing.</p>
+use the hardware for encoding/decoding video frames, and of course Vulkan for doing the actual processing in the GPU.</p>
 <h3 class="heading" id="installing-armbian">
   Installing Armbian
   <a class="anchor" href="#installing-armbian">#</a>
@@ -215,11 +221,6 @@ use the hardware for encoding/decoding video frames, and of course Vulkan for do
 version, because we will need the appropriate kernel drivers for hardware acceleration. You may use the minimal version or an image
 file that comes preinstalled with a desktop environment. I will be using <code>Armbian 26.2.1 Gnome</code>; if you use something else, the instructions
 may be different&mdash;you will be <strong>on your own</strong>.</p>
-<blockquote>
-<p>Note: In this tutorial we will render the GPU&rsquo;s output onto a window, which you won&rsquo;t have if you install the minimal version of Armbian.
-Don&rsquo;t lose hope&mdash;you may use <a href="https://github.com/cage-kiosk/cage">cage</a>, which will <em>give</em> you a &ldquo;window&rdquo; when you run your Vulkan app
-from tty. You don&rsquo;t need to compile <code>cage</code>, running <code>sudo apt install cage</code> is sufficient.</p>
-</blockquote>
 <p>Flash the downloaded image to an SD card, for which you may use Armbian&rsquo;s own <a href="https://github.com/armbian/imager/releases">flasher utility</a>,
 or <a href="https://bztsrc.gitlab.io/usbimager/">USBImager</a>. Then insert the SD card to BananaPI and let it boot. Follow the on-screen instructions.
 Once you are presented with a GUI (or a tty console if you installed the minimal version), you will need to flash the image to internal storage
@@ -244,12 +245,325 @@ Once you are presented with a GUI (or a tty console if you installed the minimal
   <button class="copy-code-button">copy</button>
 </div>
 <p>Then choose <code>Boot from eMMC - system on eMMC</code> option in installer&rsquo;s menu.</p>
+<p>Once the script finishes, it will ask us to power off the device. We will oblige. Before booting it up again,
+don&rsquo;t forget to remove the SD card from BananaPi.</p>
+<h3 class="heading" id="installing-dependencies">
+  Installing dependencies
+  <a class="anchor" href="#installing-dependencies">#</a>
+</h3>
+<p>First things first, update the system with:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl">sudo apt update
+</span></span><span class="line"><span class="ln">2</span><span class="cl">sudo apt ugprade</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>If you don&rsquo;t like the default terminal emulator (Terminator), you may switch to gnome terminal by typing:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl">gsettings <span class="nb">set</span> org.gnome.desktop.default-applications.terminal <span class="nb">exec</span> <span class="s1">&#39;gnome-terminal&#39;</span></span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>Now install the required packages:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln"> 1</span><span class="cl">sudo apt install build-essential                <span class="se">\
+</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl">                 cmake                          <span class="se">\
+</span></span></span><span class="line"><span class="ln"> 3</span><span class="cl">                 pkg-config                     <span class="se">\
+</span></span></span><span class="line"><span class="ln"> 4</span><span class="cl">                 git                            <span class="se">\
+</span></span></span><span class="line"><span class="ln"> 5</span><span class="cl">                 git-lfs                        <span class="se">\
+</span></span></span><span class="line"><span class="ln"> 6</span><span class="cl">                 gdb                            <span class="se">\
+</span></span></span><span class="line"><span class="ln"> 7</span><span class="cl">                 gcc-14                         <span class="se">\
+</span></span></span><span class="line"><span class="ln"> 8</span><span class="cl">                 g++-14                         <span class="se">\
+</span></span></span><span class="line"><span class="ln"> 9</span><span class="cl">                 vulkan-tools                   <span class="se">\
+</span></span></span><span class="line"><span class="ln">10</span><span class="cl">                 vulkan-validationlayers        <span class="se">\
+</span></span></span><span class="line"><span class="ln">11</span><span class="cl">                 libvulkan-dev</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>We need <code>g++-14</code> because we will be using C++23 features like <a href="https://en.cppreference.com/w/cpp/language/aggregate_initialization.html">designated initializers</a>.
+In your <code>~/.bashrc</code>, add the following lines:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl"><span class="nb">alias</span> <span class="nv">gcc</span><span class="o">=</span><span class="s1">&#39;gcc-14&#39;</span>
+</span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="nb">alias</span> g++<span class="o">=</span><span class="s1">&#39;g++-14&#39;</span></span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>If you type <code>vulkaninfo</code> now, you will get something like:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl">ERROR: <span class="o">[</span>Loader Message<span class="o">]</span> Code <span class="m">0</span> : vkCreateInstance: Found no drivers!
+</span></span><span class="line"><span class="ln">2</span><span class="cl">Cannot create Vulkan instance.
+</span></span><span class="line"><span class="ln">3</span><span class="cl">This problem is often caused by a faulty installation of the Vulkan driver or attempting to use a GPU that does not support Vulkan.
+</span></span><span class="line"><span class="ln">4</span><span class="cl">ERROR at ./vulkaninfo/./vulkaninfo.h:458:vkCreateInstance failed with ERROR_INCOMPATIBLE_DRIVER</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>That&rsquo;s OK, we haven&rsquo;t compiled the driver yet.</p>
 <blockquote>
-<p>Note: I chose ext4 as the filesystem, and I don&rsquo;t think it matters for our case, but if you get weird errors/bugs in the tutorial,
-you may <a href="mailto:0xdeadf1sh@tuta.io">email</a> me.</p>
+<p>Note: To follow this tutorial, you will also need to install a text editor. I will be using neovim, and if you want to use it too,
+don&rsquo;t install it through the package manager (it&rsquo;s too old). Instead, download the latest version from the <a href="https://neovim.io/">official website</a>.</p>
 </blockquote>
-<p>Once the script finishes, it will ask us to power off the device. We will oblige. Before booting it up again, remove the SD card
-from Bananapi.</p>
+<p>Now grab Mesa&rsquo;s source code from the <a href="https://archive.mesa3d.org/">archive</a>:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl">wget https://archive.mesa3d.org/mesa-26.0.1.tar.xz</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<blockquote>
+<p>Note: You may use a newer version if it is available, but make sure to check if it is compatible with the kernel version that you have installed
+(this would be the BSP kernel in our case). Incompatible versions will make <code>vulkaninfo</code> output the <code>ERROR</code> message above.</p>
+</blockquote>
+<p>Unpack it:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl">tar xvf mesa-26.0.1.tar.xz</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>Mesa uses <a href="https://mesonbuild.com/">meson</a> as its build system, but the pre-packaged version in Armbian is too old,
+so we will grab the latest one:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl">wget https://github.com/mesonbuild/meson/releases/download/1.10.1/meson-1.10.1.tar.gz</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>Unpack it:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl">tar xvf meson-1.10.1.tar.gz</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<blockquote>
+<p>Note: It&rsquo;s convenient to have meson in the PATH; here&rsquo;s how I did it:
+First, I created a directory called <code>~/Bin</code> and added it to the PATH:</p>
+</blockquote>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl">mkdir ~/Bin
+</span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="nb">echo</span> <span class="s1">&#39;export PATH=$HOME/Bin:$PATH&#39;</span> &gt;&gt; ~/.bashrc
+</span></span><span class="line"><span class="ln">3</span><span class="cl"><span class="nb">source</span> ~/.bashrc</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<blockquote>
+<p>Then I created a symlink to the meson executable in the <code>~/Bin</code> directory:</p>
+</blockquote>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl"><span class="nb">cd</span> ~/Bin
+</span></span><span class="line"><span class="ln">2</span><span class="cl">ln -s ~/meson-1.10.1/meson.py meson</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<blockquote>
+<p>Now when I type <code>meson --version</code>, I get <code>1.10.1</code>. Anything that I put in <code>~/Bin</code> automatically becomes
+available for use in the terminal.</p>
+</blockquote>
+<p>Install Mesa&rsquo;s dependencies (I will build a Wayland-only variant, even though we won&rsquo;t be rendering
+anything to a window in this tutorial, but it may come handy in the future):</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln"> 1</span><span class="cl">sudo apt install python3-mako               <span class="se">\
+</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl">                 glslang-tools              <span class="se">\
+</span></span></span><span class="line"><span class="ln"> 3</span><span class="cl">                 libclc-18-dev              <span class="se">\
+</span></span></span><span class="line"><span class="ln"> 4</span><span class="cl">                 llvm-18-dev                <span class="se">\
+</span></span></span><span class="line"><span class="ln"> 5</span><span class="cl">                 libllvmspirvlib-18-dev     <span class="se">\
+</span></span></span><span class="line"><span class="ln"> 6</span><span class="cl">                 libclang-18-dev            <span class="se">\
+</span></span></span><span class="line"><span class="ln"> 7</span><span class="cl">                 libwayland-dev             <span class="se">\
+</span></span></span><span class="line"><span class="ln"> 8</span><span class="cl">                 libwayland-egl-backend-dev <span class="se">\
+</span></span></span><span class="line"><span class="ln"> 9</span><span class="cl">                 libdrm-dev                 <span class="se">\
+</span></span></span><span class="line"><span class="ln">10</span><span class="cl">                 ninja-build</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>Then <code>cd</code> into the Mesa source directory and run:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl">meson setup build -Dplatforms<span class="o">=</span>wayland           <span class="se">\
+</span></span></span><span class="line"><span class="ln">2</span><span class="cl">                  -Dgallium-drivers<span class="o">=</span>panfrost    <span class="se">\
+</span></span></span><span class="line"><span class="ln">3</span><span class="cl">                  -Dvulkan-drivers<span class="o">=</span>panfrost     <span class="se">\
+</span></span></span><span class="line"><span class="ln">4</span><span class="cl">                  -Dtools<span class="o">=</span>panfrost              <span class="se">\
+</span></span></span><span class="line"><span class="ln">5</span><span class="cl">                  -Dvulkan-beta<span class="o">=</span><span class="nb">true</span>            <span class="se">\
+</span></span></span><span class="line"><span class="ln">6</span><span class="cl">                  -Dvideo-codecs<span class="o">=</span>all            <span class="se">\
+</span></span></span><span class="line"><span class="ln">7</span><span class="cl">                  -Dglx<span class="o">=</span>disabled                <span class="se">\
+</span></span></span><span class="line"><span class="ln">8</span><span class="cl">                  --buildtype debugoptimized</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>The last option <code>--buildtype debugoptimized</code> will give us an optimized build with debug symbols.</p>
+<p>Now type:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl">meson compile -C build</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>This will build the <a href="https://docs.mesa3d.org/drivers/panfrost.html">Panfrost driver stack</a>, which also contains
+PanVK&mdash;Vulkan driver for the Arm Mali G610 GPU.</p>
+<p>We need to tell the Vulkan apps in our system where to find the driver:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl"><span class="nb">export</span> <span class="nv">VK_DRIVER_FILES</span><span class="o">=</span><span class="nv">$HOME</span>/Desktop/mesa-26.0.1/build/src/panfrost/vulkan/panfrost_devenv_icd.aarch64.json</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<blockquote>
+<p>Note: I put the Mesa source code in <code>~/Desktop</code>; you may need to adjust it based on where your Mesa build directory
+is located.</p>
+</blockquote>
+<p>Type:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl"><span class="nb">source</span> ~/.bashrc</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>Now <code>vulkaninfo | grep apiVersion</code> should return:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl">apiVersion: 1.4.335 <span class="o">(</span>4211023<span class="o">)</span></span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>If you are wondering what that 4211023 is, it is the 32-bit unsigned integer representation of the version. Vulkan uses
+a macro called <a href="https://docs.vulkan.org/refpages/latest/refpages/source/VK_MAKE_VERSION.html">VK_MAKE_VERSION</a> to
+pack the components of its version (major, minor, patch) of the API in a single 32-bit integer. Here&rsquo;s how it is defined:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln">1</span><span class="cl"><span class="cp">#define VK_MAKE_VERSION(major, minor, patch) \
+</span></span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="cp">    ((((uint32_t)(major)) &lt;&lt; 22U) | (((uint32_t)(minor)) &lt;&lt; 12U) | ((uint32_t)(patch)))</span></span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>To check that I am not actually lying, write the following C program called <code>test.c</code>:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln">1</span><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;vulkan/vulkan.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="ln">3</span><span class="cl">
+</span></span><span class="line"><span class="ln">4</span><span class="cl"><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+</span></span><span class="line"><span class="ln">5</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln">6</span><span class="cl">    <span class="nf">printf</span><span class="p">(</span><span class="s">&#34;%u</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="nf">VK_MAKE_VERSION</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">335</span><span class="p">));</span>
+</span></span><span class="line"><span class="ln">7</span><span class="cl">
+</span></span><span class="line"><span class="ln">8</span><span class="cl">    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">9</span><span class="cl"><span class="p">}</span></span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>Then compile and run it:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl">gcc test.c
+</span></span><span class="line"><span class="ln">2</span><span class="cl">./a.out
+</span></span><span class="line"><span class="ln">3</span><span class="cl"><span class="m">4211023</span></span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>For image processing, we will write a compute shader, so let&rsquo;s download <a href="https://shader-slang.org/">Slang</a> and unpack it:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl">wget https://github.com/shader-slang/slang/releases/download/v2026.3.1/slang-2026.3.1-linux-aarch64.tar.gz
+</span></span><span class="line"><span class="ln">2</span><span class="cl">mkdir slang <span class="o">&amp;&amp;</span> <span class="nb">cd</span> slang
+</span></span><span class="line"><span class="ln">3</span><span class="cl">tar xvf ../slang-2026.3.1-linux-aarch64.tar.gz</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<blockquote>
+<p>Note: Vulkan drivers consume bytecode called <a href="https://docs.vulkan.org/guide/latest/what_is_spirv.html">SPIR-V</a>,
+which means that technically you can use any shading language whose compiler can output SPIR-V bytecode. I chose Slang because I like it :)</p>
+</blockquote>
+<p>For convenience, I create symlinks to slang executables in the <code>~/Bin</code> directory:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl"><span class="nb">cd</span> ~/Bin
+</span></span><span class="line"><span class="ln">2</span><span class="cl">ln -s <span class="nv">$HOME</span>/Desktop/slang/bin/slangc slangc
+</span></span><span class="line"><span class="ln">3</span><span class="cl">ln -s <span class="nv">$HOME</span>/Desktop/slang/bin/slangd slangd
+</span></span><span class="line"><span class="ln">4</span><span class="cl">ln -s <span class="nv">$HOME</span>/Desktop/slang/bin/slangi slangi</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>Now when I type <code>slangc -version</code>, I get:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl">2026.3.1</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>We will also be using <a href="https://gstreamer.freedesktop.org/">GStreamer</a> for fetching video frames from a camera and streaming the output
+of the GPU to the local network (explained in the next chapter):</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln"> 1</span><span class="cl">sudo apt install gstreamer1.0-plugins-base          <span class="se">\
+</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl">                 gstreamer1.0-plugins-base-apps     <span class="se">\
+</span></span></span><span class="line"><span class="ln"> 3</span><span class="cl">                 gstreamer1.0-plugins-good          <span class="se">\
+</span></span></span><span class="line"><span class="ln"> 4</span><span class="cl">                 gstreamer1.0-plugins-bad           <span class="se">\
+</span></span></span><span class="line"><span class="ln"> 5</span><span class="cl">                 gstreamer1.0-plugins-bad-apps      <span class="se">\
+</span></span></span><span class="line"><span class="ln"> 6</span><span class="cl">                 gstreamer1.0-plugins-ugly          <span class="se">\
+</span></span></span><span class="line"><span class="ln"> 7</span><span class="cl">                 libgstreamer1.0-0                  <span class="se">\
+</span></span></span><span class="line"><span class="ln"> 8</span><span class="cl">                 libgstreamer1.0-dev                <span class="se">\
+</span></span></span><span class="line"><span class="ln"> 9</span><span class="cl">                 libgstreamer-plugins-good1.0-dev   <span class="se">\
+</span></span></span><span class="line"><span class="ln">10</span><span class="cl">                 libgstreamer-plugins-base1.0-dev   <span class="se">\
+</span></span></span><span class="line"><span class="ln">11</span><span class="cl">                 libgstreamer-plugins-bad1.0-dev    <span class="se">\
+</span></span></span><span class="line"><span class="ln">12</span><span class="cl">                 gstreamer1.0-rtsp                  <span class="se">\
+</span></span></span><span class="line"><span class="ln">13</span><span class="cl">                 gstreamer1.0-tools                 <span class="se">\
+</span></span></span><span class="line"><span class="ln">14</span><span class="cl">                 gstreamer1.0-rockchip1</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>The most important package is <code>gstreamer1.0-rockchip1</code>&mdash;it will give us the ability to use Rockchip&rsquo;s hardware facilities for
+image and video processing.</p>
+<p>Rockchip comes with a <a href="https://github.com/yanyitech/rga">specialized hardware</a> for 2D image processing, which we can
+interface with using the RGA library:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl">sudo apt install librga-dev</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>That&rsquo;s it for all the dependencies.</p>
+<h3 class="heading" id="the-problem">
+  The Problem
+  <a class="anchor" href="#the-problem">#</a>
+</h3>
+<p>As explained in the beginning of this tutorial, embedded devices are often used to <strong>consume</strong> some data from a sensor, <strong>process</strong> it,
+and <strong>produce</strong> the final output to be redirected elsewhere. Here&rsquo;s what we are trying to achieve:</p>
+<p>
+
+
+
+
+
+
+
+
+
+
+
+<figure class="">
+
+    
+    
+      
+        <div class="img-container" style="--w: 2048; --h: 1055;">
+            <img loading="lazy" alt="The Problem Outline" src="/posts/img/gst_slow_pipeline.png" width="2048" height="1055">
+        </div>
+      
+    
+
+    
+    <div class="caption-container">
+        <figcaption> General outline of what we are trying to achieve </figcaption>
+    </div>
+    
+</figure>
+</p>
+<ol>
+<li>First, the camera output is received by the hardware decoder block and converted into raw RGB pixels.</li>
+<li>Then we fetch the raw output of the decoder and store it in RAM.</li>
+<li>We transfer the image from RAM to GPU&rsquo;s VRAM to be processed by the compute shader.</li>
+<li>We copy the output of the GPU and store the new image in RAM.</li>
+<li>Then we send this new image to the hardware encoder block, which will compress it to an H265 video.</li>
+<li>Finally, the video is streamed to the local network.</li>
+</ol>
+<p>Technically speaking the output of the encoder would go to the network adapter (the encoder itself can&rsquo;t stream its output to the local network),
+but you get the idea.</p>
+<p>That&rsquo;s 4 <code>memcpy()</code> operations in total! But is it the fastest way of solving this problem? Let&rsquo;s figure it out. First, we will write the implementation,
+then profile it to find out how fast (or slow) <code>memcpy()</code> can be.</p>
+<h3 class="heading" id="setting-up-the-camera">
+  Setting Up The Camera
+  <a class="anchor" href="#setting-up-the-camera">#</a>
+</h3>
+<p>You can use any camera for this project. I am using a cheap USB camera, which should suffice.</p>
+<p>When the camera is plugged to the USB port, it shows up as a new device at <code>/dev/video0</code>. We can use the <code>v4l2-ctl</code> command to find which formats it supports:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl">v4l2-ctl -d /dev/video0 --list-formats-ext</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>In my case it produces a very long list of supported formats and resolutions. I am interested mainly in the following:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl"><span class="o">[</span>0<span class="o">]</span>: <span class="s1">&#39;MJPG&#39;</span> <span class="o">(</span>Motion-JPEG, compressed<span class="o">)</span>
+</span></span><span class="line"><span class="ln">2</span><span class="cl">	Size: Discrete 1920x1080
+</span></span><span class="line"><span class="ln">3</span><span class="cl">		Interval: Discrete 0.033s <span class="o">(</span>30.000 fps<span class="o">)</span>
+</span></span><span class="line"><span class="ln">4</span><span class="cl">		Interval: Discrete 0.040s <span class="o">(</span>25.000 fps<span class="o">)</span>
+</span></span><span class="line"><span class="ln">5</span><span class="cl">		Interval: Discrete 0.050s <span class="o">(</span>20.000 fps<span class="o">)</span>
+</span></span><span class="line"><span class="ln">6</span><span class="cl">		Interval: Discrete 0.067s <span class="o">(</span>15.000 fps<span class="o">)</span>
+</span></span><span class="line"><span class="ln">7</span><span class="cl">		Interval: Discrete 0.100s <span class="o">(</span>10.000 fps<span class="o">)</span>
+</span></span><span class="line"><span class="ln">8</span><span class="cl">		Interval: Discrete 0.200s <span class="o">(</span>5.000 fps<span class="o">)</span></span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>This is a standard Full HD video made of JPEG frames. Luckily for us, the <a href="https://wiki.friendlyelec.com/wiki/images/e/ee/Rockchip_RK3588_Datasheet_V1.6-20231016.pdf">Rockchip SoC</a>
+in BananaPi comes with a hardware block for decoding JPEG images. So we won&rsquo;t need to decode it ourselves in the CPU, which would be slow. The hardware can decode 1080p video
+up to 280 FPS, which is more than enough for us.</p>
+<h3 class="heading" id="setting-up-the-project">
+  Setting Up The Project
+  <a class="anchor" href="#setting-up-the-project">#</a>
+</h3>
+<p>I will use <a href="https://cmake.org/download/">CMake</a> to generate the build files&mdash;which means we need a <code>CMakeLists.txt</code>:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cmake" data-lang="cmake"><span class="line"><span class="ln">1</span><span class="cl"><span class="nb">cmake_version_required</span><span class="p">()</span></span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<h2 class="heading" id="memcpy-is-fast">
+  memcpy() is fast?
+  <a class="anchor" href="#memcpy-is-fast">#</a>
+</h2>
     </div>
   </article>
 
@@ -271,7 +585,7 @@ from Bananapi.</p>
                 <div class="single-pagination-text">←</div>
                 <div class="single-pagination-text">
                     <a href="/posts/are-you-living-in-an-encrypted-simulation/">
-                        Are you living in an encrypted simulation?
+                        Are You Living In An Encrypted Simulation?
                     </a>
                 </div>
             </div>

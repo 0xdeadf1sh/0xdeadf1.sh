@@ -1,12 +1,13 @@
 +++
 date = '2026-01-28T21:56:49+04:00'
 draft = true
-title = 'Are you living in an encrypted simulation?'
+title = 'Are You Living In An Encrypted Simulation?'
 math = true
 toc = true
 tags = ["cryptography", "machine-learning", "vulkan"]
 showTags = true
 readTime = true
+autoNumber = true
 +++
 
 <!--more-->
@@ -14,6 +15,8 @@ readTime = true
 ## The Hall of Egress
 
 ![Hall of Egress](/img/hall_of_egress.webp#center "Image Credit: Adventure Time / Cartoon Network")
+
+### Finn the Human
 
 There is an [episode](https://www.youtube.com/watch?v=tg7ovSctPX8) of Adventure Time where the protagonist (Finn the Human)
 and his brother (Jake the Dog) find a mysterious dungeon---like an "ancient secret temple" (Finn's words, not mine).
@@ -27,10 +30,12 @@ following letters etched on its surface: "HALL OF EGRESS".
 ![Egress Meaning](/img/egress_word_meaning.png#center "Merriam-Webster's definition of **egress**")
 
 Despite how much force he applies, the door doesn't bulge (and Finn has enough strength to punch
-a [vampire](https://www.youtube.com/watch?v=qXXcA68ZIlE) ten times his size). But then, through sheer luck, he has an
+a [vampire](https://www.youtube.com/watch?v=qXXcA68ZIlE) more than ten times his size). But then, through sheer luck, he has an
 epiphany: the door disappears once he **closes his eyes**.
 
-There are other interesting problems where the solution is often to "blindfold" ourselves. For example, take
+### I Can Haz Many Forms?
+
+There are other interesting problems where one of the solutions is to "blindfold" oneself. For example, take
 the following piece of code:
 
 ```cpp
@@ -67,9 +72,9 @@ In this contrived example we have two grades of organisms: `Prokaryotic` and `Eu
 We would like for both of them to evolve. Alas, the code that invokes evolution is duplicated. We have
 to store the organisms of different grades separately and call their `evolve` methods in their own respective loops.
 Worse, what if we discover some other life form that doesn't fit neatly in the above dichotomy?
-More duplication!
+More duplication! We prefer not to [repeat ourselves](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself).
 
-C++'s solution to this is [polymorphism](https://en.wikipedia.org/wiki/Polymorphism_(computer_science)):
+C++ offers [polymorphism](https://en.wikipedia.org/wiki/Polymorphism_(computer_science)):
 
 ```cpp
 class Grade {
@@ -92,29 +97,29 @@ public:
 };
 
 eastl::vector<Grade*> organisms{};
-for (Grade* g : organisms) {
-    g->evolve();
+for (Grade* organism : organisms) {
+    organism->evolve();
 }
 ```
 
 Our new loop is **blind**---in the sense that it no longer knows which grade of organism it
 operates on. When a new grade is discovered, the source code need not be duplicated.
 
-Polymorphism has a [closed-form](https://en.wikipedia.org/wiki/Closed-form_expression) solution.
+Polymorphism is a [closed-form](https://en.wikipedia.org/wiki/Closed-form_expression) solution.
 In the case of C++, each class maintains a table of
-pointers to functions, and each instance of a class contains a pointer to the appropriate table.
+pointers to functions, and each instance of a class contains a pointer to that table.
 This way, when the `evolve` function is called, the instructions become:
 
 ```basic
-FETCH       VTBL
-LOOKUP      FUNCTION "evolve" in VTBL
-CALL        evolve
+FETCH       VTBL                            ; fetch the virtual function table
+LOOKUP      FUNCTION "evolve" in VTBL       ; look up the location of "evolve"
+CALL        evolve                          ; invoke the procedure
 ```
 
 We call this [dynamic dispatch](https://en.wikipedia.org/wiki/Dynamic_dispatch). Although powerful,
 one must be careful not to overuse it. There are two indirections here:
 
-1. We dereference the pointer to the function table.
+1. We dereference the pointer to the virtual function table.
 2. Then, we dereference the address of the function to begin executing its instructions.
 
 Dynamic dispatch introduces sequential dependency: the CPU can't know in advance which function
@@ -124,9 +129,11 @@ if the function (by which I mean the machine instructions that make up the funct
 the compiler also can't determine which function will be called, so
 [inlining](https://en.wikipedia.org/wiki/Inline_expansion) is hard.
 
+### Throwing Dice in Monte Carlo
+
 Not all problems have closed-form solutions. What if we wanted to calculate the value of $\pi$?
 There is no function with a fixed set of instructions that can calculate $\pi$, but there exist
-functions each with a fixed set of instructions such that when computed **iteratively**, can
+instructions such that when invoked **iteratively**, can
 obtain better and better approximations of $\pi$. Here's
 [Ramanujan's](https://en.wikipedia.org/wiki/Srinivasa_Ramanujan) solution to this problem:
 
@@ -140,12 +147,12 @@ another possible solution that uses random sampling. First, let us draw a unit c
 ![Circle inscribed within a square](img/circle.png#center)
 
 It is not perfectly inscribed because I drew this quickly using [KolourPaint](https://apps.kde.org/kolourpaint/),
-but you get the idea. Now suppose that we start randomly putting points inside the square:
+but you get the idea. Now suppose that we start putting random points inside the square:
 
 ![Circle inscribed within a square with points](img/circle_with_points.png#center)
 
 What's the probability of a point landing within a circle? Well, since the radius of the circle is 1, the area of
-the square is 4, and the area of the circle is $\pi$. So the probability of a point landing in the circle is
+the square is 4, and the area of the circle is $\pi$. So, the probability of a point landing in the circle is
 $\pi / 4$. We can exploit this to write a program that approximates the digits of $\pi$:
 
 ```cpp
@@ -182,7 +189,7 @@ int main()
 }
 ```
 
-Here we begin with the number of iterations set to 1, and then increase its magnitude up to 7 orders.
+Here we begin with the number of iterations set to 1, and then increase its magnitude by up to 7 orders.
 Because we know the probability of a point being inside the circle is $\pi / 4$, all we need to do is
 generate a bunch of points and then divide the number of points inside the circle by the total number of
 points. We then multiply this number (defined as `k`) with 4 to get the approximation of $\pi$.
@@ -200,16 +207,16 @@ The value of pi is 3.139247894		(iterations = 1000000)
 The value of pi is 3.141742468		(iterations = 10000000)
 ```
 
-The first time our algorithm is run, it just happened so that our point landed in the circle, causing
+The first time our algorithm was run, it just happened so that our point landed in the circle, causing
 `k` to equal 1.0. If you run this code, there is about 21.46% chance that you will get 0.0 for the first
 value. But that doesn't matter, because as the number of iterations is increased, everyone running this
 code will get closer and closer to the true value of $\pi$---well, at least to the extent that the machine is capable of.
 Floating-point numbers have finite precision, and at some point errors accumulated through repeated calculations
-will start to work against us.
+will start to work against us. Luckily we have developed [much better algorithms](https://en.wikipedia.org/wiki/Category:Pi_algorithms).
 
-At the time of writing this article humanity has computed up to [314 trillion](https://en.wikipedia.org/wiki/Chronology_of_computation_of_pi)
-digits of $\pi$, but the point is that none of these approximations is the **true** value of $\pi$, because the actual value is an infinite sequence
-of non-repeating digits.
+At the time of writing this article, humanity has computed up to [314 trillion](https://en.wikipedia.org/wiki/Chronology_of_computation_of_pi)
+digits of $\pi$, but none of these approximations is the **true** value of $\pi$, because the actual value is an infinite sequence
+of non-repeating digits. Alas, we cannot express infinitudes in a universe of finitudes.
 
 Below is the graph of our progress:
 
@@ -222,5 +229,9 @@ we are able to come up with instructions that take us there iteratively---**and*
 lest we would have needed to compare the results of our algorithm with the true value of $\pi$, which we don't have access to.
 
 But what happens when we **don't** know what the solution space looks like?
+
+### A Slippery Slope
+
+Eyes closed, Finn enters the maze-like tunnel. His first attempt almost gets him killed.
 
 ## Bostrom's Demon
