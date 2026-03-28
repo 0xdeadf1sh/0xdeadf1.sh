@@ -118,7 +118,7 @@
             
             <p class="single-date">
               <time datetime="2026-03-02T11:22:45&#43;04:00">March 2, 2026</time>
-              &nbsp; · &nbsp;10 min read
+              &nbsp; · &nbsp;19 min read
             </p>
           </div>
         </div>
@@ -144,8 +144,10 @@
         <li><a href="#installing-armbian">Installing Armbian</a></li>
         <li><a href="#installing-dependencies">Installing dependencies</a></li>
         <li><a href="#the-problem">The Problem</a></li>
-        <li><a href="#setting-up-the-camera">Setting Up The Camera</a></li>
-        <li><a href="#setting-up-the-project">Setting Up The Project</a></li>
+        <li><a href="#setting-up-the-camera">Setting up the camera</a></li>
+        <li><a href="#setting-up-the-project">Setting up the project</a></li>
+        <li><a href="#initial-scaffolding">Initial scaffolding</a></li>
+        <li><a href="#initializing-vulkan">Initializing Vulkan</a></li>
       </ul>
     </li>
     <li><a href="#memcpy-is-fast">memcpy() is fast?</a></li>
@@ -154,7 +156,10 @@
       </aside>
     
     <div class="single-content">
-      <h2 class="heading" id="memcpy-is-slow">
+      <blockquote>
+<p>Note: The source code for this project is hosted at <a href="https://github.com/0xdeadf1sh/ZeroCopyVulkan">Github</a>.</p>
+</blockquote>
+<h2 class="heading" id="memcpy-is-slow">
   memcpy() is slow?
   <a class="anchor" href="#memcpy-is-slow">#</a>
 </h2>
@@ -166,7 +171,7 @@
 It&rsquo;s called &ldquo;Part 1: Input&rdquo; because we will concern ourselves mainly with feeding the GPU; the second part
 will be called &ldquo;Part 2: Output&rdquo;, where we will extract the processed image and then do something with it
 (e.g. save it to disk, or stream it to the local network, etc., it&rsquo;s up to you).</p>
-<p>To follow this tutorial you will need a Vulkan-capable GPU. I will be using <a href="https://docs.banana-pi.org/en/BPI-M7/BananaPi_BPI-M7">BananaPI M7</a>
+<p>To follow this tutorial you will need a Vulkan-capable GPU. I will be using <a href="https://docs.banana-pi.org/en/BPI-M7/BananaPi_BPI-M7">BananaPi M7</a>
 since it has <a href="https://developer.arm.com/Processors/Mali-G610">ARM Mali-G610</a> that can run Vulkan 1.4 applications.</p>
 <blockquote>
 <p>Note: If you visit the link above you will see that the specification mentions Vulkan 1.2 as the most recent supported version,
@@ -175,7 +180,7 @@ I will also show how you can compile your own Vulkan drivers so that you get to 
 (not to mention being able to put breakpoints in the driver and observing what&rsquo;s happening under the hood&mdash;something that is
 significantly harder to do with an OpenGL driver).</p>
 </blockquote>
-<p>Another reason for choosing BananaPI M7 is that the sort of optimization that we will be implementing is done most often in embedded
+<p>Another reason for choosing BananaPi M7 is that the sort of optimization that we will be implementing is done most often in embedded
 devices, where the device needs to <strong>consume</strong> some data produced by a sensor (or multiple sensors), <strong>process</strong> it, and
 <strong>produce</strong> the final output to be redirected somewhere else.</p>
 <p>Below is an image of M7 next to an actual banana:</p>
@@ -197,7 +202,7 @@ devices, where the device needs to <strong>consume</strong> some data produced b
     
       
         <div class="img-container" style="--w: 1600; --h: 720;">
-            <img loading="lazy" alt="BananaPI M7 next to a real banana" src="/posts/img/bananapim7.jpeg" width="1600" height="720">
+            <img loading="lazy" alt="BananaPi M7 next to a real banana" src="/posts/img/bananapim7.jpeg" width="1600" height="720">
         </div>
       
     
@@ -217,12 +222,12 @@ use the hardware for encoding/decoding video frames, and of course Vulkan for do
   Installing Armbian
   <a class="anchor" href="#installing-armbian">#</a>
 </h3>
-<p>First, download the Armbian image for BananaPI M7 <a href="https://www.armbian.com/bananapi-m7/">here</a>. Make sure to select the BSP kernel
+<p>First, download the Armbian image for BananaPi M7 <a href="https://www.armbian.com/bananapi-m7/">here</a>. Make sure to select the BSP kernel
 version, because we will need the appropriate kernel drivers for hardware acceleration. You may use the minimal version or an image
 file that comes preinstalled with a desktop environment. I will be using <code>Armbian 26.2.1 Gnome</code>; if you use something else, the instructions
 may be different&mdash;you will be <strong>on your own</strong>.</p>
 <p>Flash the downloaded image to an SD card, for which you may use Armbian&rsquo;s own <a href="https://github.com/armbian/imager/releases">flasher utility</a>,
-or <a href="https://bztsrc.gitlab.io/usbimager/">USBImager</a>. Then insert the SD card to BananaPI and let it boot. Follow the on-screen instructions.
+or <a href="https://bztsrc.gitlab.io/usbimager/">USBImager</a>. Then insert the SD card to BananaPi and let it boot. Follow the on-screen instructions.
 Once you are presented with a GUI (or a tty console if you installed the minimal version), you will need to flash the image to internal storage
 (which in my case is an eMMC storage). First, run the <code>lsblk</code> command to see a list of devices:</p>
 <div class="code-block">
@@ -264,17 +269,15 @@ don&rsquo;t forget to remove the SD card from BananaPi.</p>
 </div>
 <p>Now install the required packages:</p>
 <div class="code-block">
-  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln"> 1</span><span class="cl">sudo apt install build-essential                <span class="se">\
-</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl">                 cmake                          <span class="se">\
-</span></span></span><span class="line"><span class="ln"> 3</span><span class="cl">                 pkg-config                     <span class="se">\
-</span></span></span><span class="line"><span class="ln"> 4</span><span class="cl">                 git                            <span class="se">\
-</span></span></span><span class="line"><span class="ln"> 5</span><span class="cl">                 git-lfs                        <span class="se">\
-</span></span></span><span class="line"><span class="ln"> 6</span><span class="cl">                 gdb                            <span class="se">\
-</span></span></span><span class="line"><span class="ln"> 7</span><span class="cl">                 gcc-14                         <span class="se">\
-</span></span></span><span class="line"><span class="ln"> 8</span><span class="cl">                 g++-14                         <span class="se">\
-</span></span></span><span class="line"><span class="ln"> 9</span><span class="cl">                 vulkan-tools                   <span class="se">\
-</span></span></span><span class="line"><span class="ln">10</span><span class="cl">                 vulkan-validationlayers        <span class="se">\
-</span></span></span><span class="line"><span class="ln">11</span><span class="cl">                 libvulkan-dev</span></span></code></pre></div>
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl">sudo apt install build-essential                <span class="se">\
+</span></span></span><span class="line"><span class="ln">2</span><span class="cl">                 cmake                          <span class="se">\
+</span></span></span><span class="line"><span class="ln">3</span><span class="cl">                 pkg-config                     <span class="se">\
+</span></span></span><span class="line"><span class="ln">4</span><span class="cl">                 git                            <span class="se">\
+</span></span></span><span class="line"><span class="ln">5</span><span class="cl">                 git-lfs                        <span class="se">\
+</span></span></span><span class="line"><span class="ln">6</span><span class="cl">                 gdb                            <span class="se">\
+</span></span></span><span class="line"><span class="ln">7</span><span class="cl">                 gcc-14                         <span class="se">\
+</span></span></span><span class="line"><span class="ln">8</span><span class="cl">                 g++-14                         <span class="se">\
+</span></span></span><span class="line"><span class="ln">9</span><span class="cl">                 vulkan-tools                   <span class="err">\</span></span></span></code></pre></div>
   <button class="copy-code-button">copy</button>
 </div>
 <p>We need <code>g++-14</code> because we will be using C++23 features like <a href="https://en.cppreference.com/w/cpp/language/aggregate_initialization.html">designated initializers</a>.
@@ -371,7 +374,8 @@ anything to a window in this tutorial, but it may come handy in the future):</p>
 </span></span></span><span class="line"><span class="ln">8</span><span class="cl">                  --buildtype debugoptimized</span></span></code></pre></div>
   <button class="copy-code-button">copy</button>
 </div>
-<p>The last option <code>--buildtype debugoptimized</code> will give us an optimized build with debug symbols.</p>
+<p>The last option <code>--buildtype debugoptimized</code> will give us an optimized build with debugging symbols&mdash;very useful
+when debugging through <code>GDB</code>.</p>
 <p>Now type:</p>
 <div class="code-block">
   <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl">meson compile -C build</span></span></code></pre></div>
@@ -379,7 +383,7 @@ anything to a window in this tutorial, but it may come handy in the future):</p>
 </div>
 <p>This will build the <a href="https://docs.mesa3d.org/drivers/panfrost.html">Panfrost driver stack</a>, which also contains
 PanVK&mdash;Vulkan driver for the Arm Mali G610 GPU.</p>
-<p>We need to tell the Vulkan apps in our system where to find the driver:</p>
+<p>We need to tell the Vulkan apps in our system where to find the driver. Append the line below to your <code>~/.bashrc</code>:</p>
 <div class="code-block">
   <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl"><span class="nb">export</span> <span class="nv">VK_DRIVER_FILES</span><span class="o">=</span><span class="nv">$HOME</span>/Desktop/mesa-26.0.1/build/src/panfrost/vulkan/panfrost_devenv_icd.aarch64.json</span></span></code></pre></div>
   <button class="copy-code-button">copy</button>
@@ -398,6 +402,9 @@ is located.</p>
   <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl">apiVersion: 1.4.335 <span class="o">(</span>4211023<span class="o">)</span></span></span></code></pre></div>
   <button class="copy-code-button">copy</button>
 </div>
+<blockquote>
+<p>Note: Your last three digits may be different, that&rsquo;s fine as long as the version is at least 1.4.</p>
+</blockquote>
 <p>If you are wondering what that 4211023 is, it is the 32-bit unsigned integer representation of the version. Vulkan uses
 a macro called <a href="https://docs.vulkan.org/refpages/latest/refpages/source/VK_MAKE_VERSION.html">VK_MAKE_VERSION</a> to
 pack the components of its version (major, minor, patch) of the API in a single 32-bit integer. Here&rsquo;s how it is defined:</p>
@@ -426,7 +433,62 @@ pack the components of its version (major, minor, patch) of the API in a single 
 </span></span><span class="line"><span class="ln">3</span><span class="cl"><span class="m">4211023</span></span></span></code></pre></div>
   <button class="copy-code-button">copy</button>
 </div>
-<p>For image processing, we will write a compute shader, so let&rsquo;s download <a href="https://shader-slang.org/">Slang</a> and unpack it:</p>
+<p>To actually use Vulkan functions (including extensions), we need to load them. We will use <a href="https://github.com/zeux/volk">volk</a>:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl">git clone --depth<span class="o">=</span><span class="m">1</span> https://github.com/zeux/volk
+</span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="nb">cd</span> volk
+</span></span><span class="line"><span class="ln">3</span><span class="cl">gcc -O2 -march<span class="o">=</span>native -g -c volk.c -o libvolk.a</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>The <code>libvulkan1</code> package that came pre-installed with Armbian is too old, so we will fetch three additional repositories and
+build the vulkan loader and the validation layers:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl">git clone --depth<span class="o">=</span><span class="m">1</span> https://github.com/KhronosGroup/Vulkan-Headers
+</span></span><span class="line"><span class="ln">2</span><span class="cl">git clone --depth<span class="o">=</span><span class="m">1</span> https://github.com/KhronosGroup/Vulkan-Loader
+</span></span><span class="line"><span class="ln">3</span><span class="cl">git clone --depth<span class="o">=</span><span class="m">1</span> https://github.com/KhronosGroup/Vulkan-ValidationLayers</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>First, we install the headers:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl"><span class="nb">cd</span> Vulkan-Headers
+</span></span><span class="line"><span class="ln">2</span><span class="cl">cmake -S . -B build
+</span></span><span class="line"><span class="ln">3</span><span class="cl">sudo cmake --install build</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>Then, we build the loader:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl"><span class="nb">cd</span> Vulkan-Loader
+</span></span><span class="line"><span class="ln">2</span><span class="cl">cmake -B build -DBUILD_WSI_XCB_SUPPORT<span class="o">=</span>OFF -DBUILD_WSI_XLIB_SUPPORT<span class="o">=</span>OFF -DBUILD_WSI_XLIB_XRANDR_SUPPORT<span class="o">=</span>OFF -DCMAKE_BUILD_TYPE<span class="o">=</span>RelWithDebInfo .
+</span></span><span class="line"><span class="ln">3</span><span class="cl">cmake --build build -j8</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>Then the validation layers:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl"><span class="nb">cd</span> Vulkan-ValidationLayers
+</span></span><span class="line"><span class="ln">2</span><span class="cl">cmake -B build -DBUILD_WSI_XCB_SUPPORT<span class="o">=</span>OFF -DBUILD_WSI_XLIB_SUPPORT<span class="o">=</span>OFF -DBUILD_WSI_XLIB_XRANDR_SUPPORT<span class="o">=</span>OFF -DCMAKE_BUILD_TYPE<span class="o">=</span>RelWithDebInfo .
+</span></span><span class="line"><span class="ln">3</span><span class="cl">cmake --build build -j8</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>Note that I didn&rsquo;t install the loader and the validation layers. Instead I will put them inside the <code>lib</code> directory of our project.</p>
+<p>I will use <a href="https://github.com/electronicarts/EASTL">EASTL</a>&mdash;I prefer it to C++&rsquo;s standard library because of its emphasis
+on performance and some additional data structures that it provides:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl">git clone --depth<span class="o">=</span><span class="m">1</span> https://github.com/electronicarts/EASTL</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p><a href="https://github.com/electronicarts/EASTL">EASTL</a> depends on <a href="https://github.com/electronicarts/EABase">EABase</a>, so fetch it too:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl">git clone --depth<span class="o">=</span><span class="m">1</span> https://github.com/electronicarts/EABase</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>Now build EASTL:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl"><span class="nb">cd</span> EASTL
+</span></span><span class="line"><span class="ln">2</span><span class="cl">cmake -B build -DCMAKE_BUILD_TYPE<span class="o">=</span>RelWithDebInfo .
+</span></span><span class="line"><span class="ln">3</span><span class="cl">cmake --build build -j8</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>For image processing, we will write a compute shader, so download <a href="https://shader-slang.org/">Slang</a> and unpack it:</p>
 <div class="code-block">
   <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl">wget https://github.com/shader-slang/slang/releases/download/v2026.3.1/slang-2026.3.1-linux-aarch64.tar.gz
 </span></span><span class="line"><span class="ln">2</span><span class="cl">mkdir slang <span class="o">&amp;&amp;</span> <span class="nb">cd</span> slang
@@ -437,7 +499,7 @@ pack the components of its version (major, minor, patch) of the API in a single 
 <p>Note: Vulkan drivers consume bytecode called <a href="https://docs.vulkan.org/guide/latest/what_is_spirv.html">SPIR-V</a>,
 which means that technically you can use any shading language whose compiler can output SPIR-V bytecode. I chose Slang because I like it :)</p>
 </blockquote>
-<p>For convenience, I create symlinks to slang executables in the <code>~/Bin</code> directory:</p>
+<p>For convenience, I created symlinks to slang executables in the <code>~/Bin</code> directory:</p>
 <div class="code-block">
   <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl"><span class="nb">cd</span> ~/Bin
 </span></span><span class="line"><span class="ln">2</span><span class="cl">ln -s <span class="nv">$HOME</span>/Desktop/slang/bin/slangc slangc
@@ -469,7 +531,7 @@ of the GPU to the local network (explained in the next chapter):</p>
 </span></span></span><span class="line"><span class="ln">14</span><span class="cl">                 gstreamer1.0-rockchip1</span></span></code></pre></div>
   <button class="copy-code-button">copy</button>
 </div>
-<p>The most important package is <code>gstreamer1.0-rockchip1</code>&mdash;it will give us the ability to use Rockchip&rsquo;s hardware facilities for
+<p>The most important package is <code>gstreamer1.0-rockchip1</code>&mdash;it will allow us to use Rockchip&rsquo;s hardware facilities for
 image and video processing.</p>
 <p>Rockchip comes with a <a href="https://github.com/yanyitech/rga">specialized hardware</a> for 2D image processing, which we can
 interface with using the RGA library:</p>
@@ -477,7 +539,6 @@ interface with using the RGA library:</p>
   <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl">sudo apt install librga-dev</span></span></code></pre></div>
   <button class="copy-code-button">copy</button>
 </div>
-<p>That&rsquo;s it for all the dependencies.</p>
 <h3 class="heading" id="the-problem">
   The Problem
   <a class="anchor" href="#the-problem">#</a>
@@ -527,7 +588,7 @@ but you get the idea.</p>
 <p>That&rsquo;s 4 <code>memcpy()</code> operations in total! But is it the fastest way of solving this problem? Let&rsquo;s figure it out. First, we will write the implementation,
 then profile it to find out how fast (or slow) <code>memcpy()</code> can be.</p>
 <h3 class="heading" id="setting-up-the-camera">
-  Setting Up The Camera
+  Setting up the camera
   <a class="anchor" href="#setting-up-the-camera">#</a>
 </h3>
 <p>You can use any camera for this project. I am using a cheap USB camera, which should suffice.</p>
@@ -552,14 +613,504 @@ then profile it to find out how fast (or slow) <code>memcpy()</code> can be.</p>
 in BananaPi comes with a hardware block for decoding JPEG images. So we won&rsquo;t need to decode it ourselves in the CPU, which would be slow. The hardware can decode 1080p video
 up to 280 FPS, which is more than enough for us.</p>
 <h3 class="heading" id="setting-up-the-project">
-  Setting Up The Project
+  Setting up the project
   <a class="anchor" href="#setting-up-the-project">#</a>
 </h3>
 <p>I will use <a href="https://cmake.org/download/">CMake</a> to generate the build files&mdash;which means we need a <code>CMakeLists.txt</code>:</p>
 <div class="code-block">
-  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cmake" data-lang="cmake"><span class="line"><span class="ln">1</span><span class="cl"><span class="nb">cmake_version_required</span><span class="p">()</span></span></span></code></pre></div>
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cmake" data-lang="cmake"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="nb">cmake_minimum_required</span><span class="p">(</span><span class="s">VERSION</span> <span class="s">3.10</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="err">
+</span></span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="nb">set</span><span class="p">(</span><span class="s">CMAKE_CXX_STANDARD</span>              <span class="s">23</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="nb">set</span><span class="p">(</span><span class="s">CMAKE_CXX_STANDARD_REQUIRED</span>     <span class="s">True</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="nb">set</span><span class="p">(</span><span class="s">CMAKE_CXX_EXTENSIONS</span>            <span class="s">OFF</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln"> 6</span><span class="cl"><span class="nb">set</span><span class="p">(</span><span class="s">CMAKE_C_COMPILER</span>                <span class="s">/usr/bin/gcc-14</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="nb">set</span><span class="p">(</span><span class="s">CMAKE_CXX_COMPILER</span>              <span class="s">/usr/bin/g++-14</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln"> 8</span><span class="cl"><span class="err">
+</span></span></span><span class="line"><span class="ln"> 9</span><span class="cl"><span class="nb">project</span><span class="p">(</span><span class="s">ZeroCopyVulkan</span>              <span class="s">VERSION</span> <span class="s">0.1</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">10</span><span class="cl"><span class="err">
+</span></span></span><span class="line"><span class="ln">11</span><span class="cl"><span class="nb">set</span><span class="p">(</span><span class="s">CMAKE_ARCHIVE_OUTPUT_DIRECTORY</span>  <span class="o">${</span><span class="nv">CMAKE_BINARY_DIR</span><span class="o">}</span><span class="s">/</span><span class="o">${</span><span class="nv">CMAKE_CFG_INTDIR</span><span class="o">}</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">12</span><span class="cl"><span class="nb">set</span><span class="p">(</span><span class="s">CMAKE_LIBRARY_OUTPUT_DIRECTORY</span>  <span class="o">${</span><span class="nv">CMAKE_BINARY_DIR</span><span class="o">}</span><span class="s">/</span><span class="o">${</span><span class="nv">CMAKE_CFG_INTDIR</span><span class="o">}</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">13</span><span class="cl"><span class="nb">set</span><span class="p">(</span><span class="s">CMAKE_RUNTIME_OUTPUT_DIRECTORY</span>  <span class="o">${</span><span class="nv">CMAKE_BINARY_DIR</span><span class="o">}</span><span class="s">/</span><span class="o">${</span><span class="nv">CMAKE_CFG_INTDIR</span><span class="o">}</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">14</span><span class="cl"><span class="nb">set</span><span class="p">(</span><span class="s">CMAKE_EXPORT_COMPILE_COMMANDS</span>   <span class="s">ON</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">15</span><span class="cl"><span class="err">
+</span></span></span><span class="line"><span class="ln">16</span><span class="cl"><span class="nb">set</span><span class="p">(</span><span class="s">TP_LIB_DIR</span>                      <span class="o">${</span><span class="nv">CMAKE_SOURCE_DIR</span><span class="o">}</span><span class="s">/lib</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">17</span><span class="cl"><span class="err">
+</span></span></span><span class="line"><span class="ln">18</span><span class="cl"><span class="nb">include</span><span class="p">(</span><span class="o">${</span><span class="nv">CMAKE_SOURCE_DIR</span><span class="o">}</span><span class="s">/compile_flags.cmake</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">19</span><span class="cl"><span class="err">
+</span></span></span><span class="line"><span class="ln">20</span><span class="cl"><span class="nb">find_package</span><span class="p">(</span><span class="s">PkgConfig</span> <span class="s">REQUIRED</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">21</span><span class="cl"><span class="nb">pkg_check_modules</span><span class="p">(</span><span class="s">GST_APP</span> <span class="s">REQUIRED</span>  <span class="s">gstreamer-1.0</span>
+</span></span><span class="line"><span class="ln">22</span><span class="cl">                                    <span class="s">gstreamer-app-1.0</span>
+</span></span><span class="line"><span class="ln">23</span><span class="cl">                                    <span class="s">gstreamer-allocators-1.0</span>
+</span></span><span class="line"><span class="ln">24</span><span class="cl">                                    <span class="s">glib-2.0</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">25</span><span class="cl"><span class="err">
+</span></span></span><span class="line"><span class="ln">26</span><span class="cl"><span class="nb">add_executable</span><span class="p">(</span><span class="s2">&#34;${PROJECT_NAME}&#34;</span>
+</span></span><span class="line"><span class="ln">27</span><span class="cl">    <span class="o">${</span><span class="nv">CMAKE_SOURCE_DIR</span><span class="o">}</span><span class="s">/src/memcpy.cpp</span>
+</span></span><span class="line"><span class="ln">28</span><span class="cl">    <span class="o">${</span><span class="nv">CMAKE_SOURCE_DIR</span><span class="o">}</span><span class="s">/src/zero-copy.cpp</span>
+</span></span><span class="line"><span class="ln">29</span><span class="cl">    <span class="o">${</span><span class="nv">CMAKE_SOURCE_DIR</span><span class="o">}</span><span class="s">/src/memory.cpp</span>
+</span></span><span class="line"><span class="ln">30</span><span class="cl">    <span class="o">${</span><span class="nv">CMAKE_SOURCE_DIR</span><span class="o">}</span><span class="s">/src/main.cpp</span>
+</span></span><span class="line"><span class="ln">31</span><span class="cl"><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">32</span><span class="cl"><span class="err">
+</span></span></span><span class="line"><span class="ln">33</span><span class="cl"><span class="nb">target_link_directories</span><span class="p">(</span><span class="s2">&#34;${PROJECT_NAME}&#34;</span> <span class="s">PRIVATE</span> <span class="o">${</span><span class="nv">TP_LIB_DIR</span><span class="o">}</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">34</span><span class="cl"><span class="err">
+</span></span></span><span class="line"><span class="ln">35</span><span class="cl"><span class="nb">target_compile_options</span><span class="p">(</span><span class="s2">&#34;${PROJECT_NAME}&#34;</span> <span class="s">PRIVATE</span> <span class="o">${</span><span class="nv">COMMON_COMPILER_FLAGS</span><span class="o">}</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">36</span><span class="cl"><span class="nb">target_compile_options</span><span class="p">(</span><span class="s2">&#34;${PROJECT_NAME}&#34;</span> <span class="s">PRIVATE</span>
+</span></span><span class="line"><span class="ln">37</span><span class="cl">    <span class="o">$&lt;</span><span class="nv">$&lt;CONFIG:Debug</span><span class="o">&gt;</span><span class="s">:</span><span class="o">${</span><span class="nv">DEBUG_COMPILER_FLAGS</span><span class="o">}</span><span class="s">&gt;</span>
+</span></span><span class="line"><span class="ln">38</span><span class="cl">    <span class="o">$&lt;</span><span class="nv">$&lt;CONFIG:Release</span><span class="o">&gt;</span><span class="s">:</span><span class="o">${</span><span class="nv">RELEASE_COMPILER_FLAGS</span><span class="o">}</span><span class="s">&gt;</span>
+</span></span><span class="line"><span class="ln">39</span><span class="cl"><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">40</span><span class="cl"><span class="err">
+</span></span></span><span class="line"><span class="ln">41</span><span class="cl"><span class="nb">target_link_options</span><span class="p">(</span><span class="s2">&#34;${PROJECT_NAME}&#34;</span> <span class="s">PRIVATE</span> <span class="o">${</span><span class="nv">COMMON_LINKER_FLAGS</span><span class="o">}</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">42</span><span class="cl"><span class="nb">target_link_options</span><span class="p">(</span><span class="s2">&#34;${PROJECT_NAME}&#34;</span> <span class="s">PRIVATE</span>
+</span></span><span class="line"><span class="ln">43</span><span class="cl">    <span class="o">$&lt;</span><span class="nv">$&lt;CONFIG:Debug</span><span class="o">&gt;</span><span class="s">:</span><span class="o">${</span><span class="nv">DEBUG_LINKER_FLAGS</span><span class="o">}</span><span class="s">&gt;</span>
+</span></span><span class="line"><span class="ln">44</span><span class="cl">    <span class="o">$&lt;</span><span class="nv">$&lt;CONFIG:Release</span><span class="o">&gt;</span><span class="s">:</span><span class="o">${</span><span class="nv">RELEASE_LINKER_FLAGS</span><span class="o">}</span><span class="s">&gt;</span>
+</span></span><span class="line"><span class="ln">45</span><span class="cl"><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">46</span><span class="cl"><span class="err">
+</span></span></span><span class="line"><span class="ln">47</span><span class="cl"><span class="nb">target_include_directories</span><span class="p">(</span><span class="s2">&#34;${PROJECT_NAME}&#34;</span> <span class="s">SYSTEM</span> <span class="s">PUBLIC</span> <span class="s">include</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">48</span><span class="cl"><span class="nb">target_include_directories</span><span class="p">(</span><span class="s2">&#34;${PROJECT_NAME}&#34;</span> <span class="s">SYSTEM</span> <span class="s">PUBLIC</span> <span class="o">${</span><span class="nv">GST_APP_INCLUDE_DIRS</span><span class="o">}</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">49</span><span class="cl"><span class="err">
+</span></span></span><span class="line"><span class="ln">50</span><span class="cl"><span class="nb">find_library</span><span class="p">(</span><span class="s">RGA</span> <span class="s">NAMES</span> <span class="s">rga</span> <span class="s">PATHS</span> <span class="s">/usr/lib/aarch64-linux-gnu</span> <span class="s">REQUIRED</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">51</span><span class="cl"><span class="nb">target_link_libraries</span><span class="p">(</span><span class="s2">&#34;${PROJECT_NAME}&#34;</span> <span class="s">PRIVATE</span> <span class="o">${</span><span class="nv">RGA</span><span class="o">}</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">52</span><span class="cl"><span class="err">
+</span></span></span><span class="line"><span class="ln">53</span><span class="cl"><span class="nb">function</span><span class="p">(</span><span class="s">find_and_link_library</span> <span class="s">LIB_NAME</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">54</span><span class="cl">    <span class="nb">string</span><span class="p">(</span><span class="s">TOUPPER</span> <span class="o">${</span><span class="nv">LIB_NAME</span><span class="o">}</span> <span class="s">LIB_VAR</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">55</span><span class="cl">    <span class="nb">find_library</span><span class="p">(</span><span class="o">${</span><span class="nv">LIB_VAR</span><span class="o">}</span> <span class="s">NAMES</span> <span class="o">${</span><span class="nv">LIB_NAME</span><span class="o">}</span> <span class="s">PATHS</span> <span class="o">${</span><span class="nv">TP_LIB_DIR</span><span class="o">}</span> <span class="s">NO_DEFAULT_PATH</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">56</span><span class="cl">    <span class="nb">if</span><span class="p">(</span><span class="o">${</span><span class="nv">LIB_VAR</span><span class="o">}</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">57</span><span class="cl">        <span class="nb">target_link_libraries</span><span class="p">(</span><span class="s2">&#34;${PROJECT_NAME}&#34;</span> <span class="s">PRIVATE</span> <span class="o">${</span><span class="nv">${LIB_VAR</span><span class="o">}</span><span class="s">}</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">58</span><span class="cl">    <span class="nb">else</span><span class="p">()</span><span class="err">
+</span></span></span><span class="line"><span class="ln">59</span><span class="cl">        <span class="nb">message</span><span class="p">(</span><span class="s">FATAL_ERROR</span> <span class="s2">&#34;Could not find ${LIB_NAME}&#34;</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">60</span><span class="cl">    <span class="nb">endif</span><span class="p">()</span><span class="err">
+</span></span></span><span class="line"><span class="ln">61</span><span class="cl"><span class="nb">endfunction</span><span class="p">()</span><span class="err">
+</span></span></span><span class="line"><span class="ln">62</span><span class="cl"><span class="err">
+</span></span></span><span class="line"><span class="ln">63</span><span class="cl"><span class="nb">find_and_link_library</span><span class="p">(</span><span class="s">EASTL</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">64</span><span class="cl"><span class="nb">find_and_link_library</span><span class="p">(</span><span class="s">volk</span><span class="p">)</span></span></span></code></pre></div>
   <button class="copy-code-button">copy</button>
 </div>
+<blockquote>
+<p>Note: If you are wondering what that <code>include(${CMAKE_SOURCE_DIR}/compile_flags.cmake)</code> is,
+I have basically put the compiler and linker flags in a different cmake file, so that we don&rsquo;t
+clutter the main build script.</p>
+</blockquote>
+<p>The build script above does a few things:</p>
+<ul>
+<li>It sets the C++ standard to 23</li>
+<li>Disables compiler extensions</li>
+<li>Sets the compiler to a version that supports C++ version 23 (in our case, <code>g++-14</code>)</li>
+<li>Makes sure that CMake doesn&rsquo;t clutter the root directory of our project</li>
+<li>Sets the library directory to <code>lib</code></li>
+<li>Includes compiler and linker flags from a separate file (to be shown later)</li>
+<li>Searches for GStreamer libraries in the system</li>
+<li>Specifies the source code files of the project</li>
+<li>Sets different compiler and linker flags depending on whether we are building for <code>debug</code> or <code>release</code></li>
+<li>Sets the appropriate header files as <code>SYSTEM</code> (this means that our custom compiler flags won&rsquo;t apply to them&mdash;later you will see why we need it)</li>
+<li>Finds the <code>RGA</code> library in the system and links to it</li>
+<li>Defines a function called <code>find_and_link_library</code> used for finding and linking libraries in the <code>lib</code> directory</li>
+</ul>
+<p>The script could have been writter better, sure, namely the code for finding the C++23-capable compiler can be
+refactored to something that can work across systems, but for our purposes setting the compiler path to <code>/usr/bin/g++-14</code> is good enough.</p>
+<p>Below is the <code>compile_flags.cmake</code> (despite its name, it also contains the linker flags):</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cmake" data-lang="cmake"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="nb">set</span><span class="p">(</span><span class="s">COMMON_COMPILER_FLAGS</span>
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl">    <span class="s2">&#34;-DEASTL_STRING_EXPLICIT&#34;</span>            <span class="c"># make string ctor explicit
+</span></span></span><span class="line"><span class="ln"> 3</span><span class="cl">    <span class="s2">&#34;-DEASTL_EXCEPTIONS_ENABLED=0&#34;</span>       <span class="c"># disable exceptions
+</span></span></span><span class="line"><span class="ln"> 4</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl">    <span class="s2">&#34;-save-temps&#34;</span>
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">    <span class="s2">&#34;-march=native&#34;</span>
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">    <span class="s2">&#34;-g&#34;</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="s2">&#34;-Wall&#34;</span>
+</span></span><span class="line"><span class="ln">10</span><span class="cl">    <span class="s2">&#34;-Wextra&#34;</span>
+</span></span><span class="line"><span class="ln">11</span><span class="cl">    <span class="s2">&#34;-Werror&#34;</span>
+</span></span><span class="line"><span class="ln">12</span><span class="cl">    <span class="s2">&#34;-Wformat&#34;</span>
+</span></span><span class="line"><span class="ln">13</span><span class="cl">    <span class="s2">&#34;-Wformat=2&#34;</span>
+</span></span><span class="line"><span class="ln">14</span><span class="cl">    <span class="s2">&#34;-Wformat-security&#34;</span>
+</span></span><span class="line"><span class="ln">15</span><span class="cl">    <span class="s2">&#34;-Whardened&#34;</span>
+</span></span><span class="line"><span class="ln">16</span><span class="cl">    <span class="s2">&#34;-Wconversion&#34;</span>
+</span></span><span class="line"><span class="ln">17</span><span class="cl">    <span class="s2">&#34;-Wsign-conversion&#34;</span>
+</span></span><span class="line"><span class="ln">18</span><span class="cl">    <span class="s2">&#34;-Wfloat-equal&#34;</span>
+</span></span><span class="line"><span class="ln">19</span><span class="cl">    <span class="s2">&#34;-Wimplicit-fallthrough&#34;</span>
+</span></span><span class="line"><span class="ln">20</span><span class="cl">    <span class="s2">&#34;-Wbidi-chars=any&#34;</span>
+</span></span><span class="line"><span class="ln">21</span><span class="cl">    <span class="s2">&#34;-Wundef&#34;</span>
+</span></span><span class="line"><span class="ln">22</span><span class="cl">    <span class="s2">&#34;-Wnull-dereference&#34;</span>
+</span></span><span class="line"><span class="ln">23</span><span class="cl">    <span class="s2">&#34;-Wunused-variable&#34;</span>
+</span></span><span class="line"><span class="ln">24</span><span class="cl">    <span class="s2">&#34;-Wshadow&#34;</span>
+</span></span><span class="line"><span class="ln">25</span><span class="cl">    <span class="s2">&#34;-Wpointer-arith&#34;</span>
+</span></span><span class="line"><span class="ln">26</span><span class="cl">    <span class="s2">&#34;-Wwrite-strings&#34;</span> 
+</span></span><span class="line"><span class="ln">27</span><span class="cl">    <span class="s2">&#34;-Wunreachable-code&#34;</span>
+</span></span><span class="line"><span class="ln">28</span><span class="cl">    <span class="s2">&#34;-Winit-self&#34;</span>
+</span></span><span class="line"><span class="ln">29</span><span class="cl">    <span class="s2">&#34;-Wnon-virtual-dtor&#34;</span>
+</span></span><span class="line"><span class="ln">30</span><span class="cl">    <span class="s2">&#34;-Wdeprecated&#34;</span>
+</span></span><span class="line"><span class="ln">31</span><span class="cl">    <span class="s2">&#34;-Wold-style-cast&#34;</span>
+</span></span><span class="line"><span class="ln">32</span><span class="cl">    <span class="s2">&#34;-Wsuggest-override&#34;</span>
+</span></span><span class="line"><span class="ln">33</span><span class="cl">    <span class="s2">&#34;-Wmisleading-indentation&#34;</span>
+</span></span><span class="line"><span class="ln">34</span><span class="cl">    <span class="s2">&#34;-Wparentheses&#34;</span>
+</span></span><span class="line"><span class="ln">35</span><span class="cl">    <span class="s2">&#34;-Wlogical-op&#34;</span>
+</span></span><span class="line"><span class="ln">36</span><span class="cl">    <span class="s2">&#34;-Wattributes&#34;</span>
+</span></span><span class="line"><span class="ln">37</span><span class="cl">    <span class="s2">&#34;-Wuseless-cast&#34;</span>
+</span></span><span class="line"><span class="ln">38</span><span class="cl">    <span class="s2">&#34;-Wcast-qual&#34;</span>
+</span></span><span class="line"><span class="ln">39</span><span class="cl">    <span class="s2">&#34;-Wcast-align&#34;</span>
+</span></span><span class="line"><span class="ln">40</span><span class="cl">    <span class="s2">&#34;-Wmissing-include-dirs&#34;</span>
+</span></span><span class="line"><span class="ln">41</span><span class="cl">    <span class="s2">&#34;-Wredundant-decls&#34;</span>
+</span></span><span class="line"><span class="ln">42</span><span class="cl">    <span class="s2">&#34;-D_GLIBCXX_ASSERTIONS&#34;</span>
+</span></span><span class="line"><span class="ln">43</span><span class="cl">    <span class="s2">&#34;-U_FORTIFY_SOURCE&#34;</span>
+</span></span><span class="line"><span class="ln">44</span><span class="cl">    <span class="s2">&#34;-D_FORTIFY_SOURCE=3&#34;</span>
+</span></span><span class="line"><span class="ln">45</span><span class="cl">    <span class="s2">&#34;-fstrict-flex-arrays=3&#34;</span>
+</span></span><span class="line"><span class="ln">46</span><span class="cl">    <span class="s2">&#34;-fstack-clash-protection&#34;</span>
+</span></span><span class="line"><span class="ln">47</span><span class="cl">    <span class="s2">&#34;-fstack-protector-strong&#34;</span>
+</span></span><span class="line"><span class="ln">48</span><span class="cl">    <span class="s2">&#34;-mbranch-protection=standard&#34;</span>
+</span></span><span class="line"><span class="ln">49</span><span class="cl">    <span class="s2">&#34;-Wl,-z,nodlopen&#34;</span>
+</span></span><span class="line"><span class="ln">50</span><span class="cl">    <span class="s2">&#34;-Wl,-z,noexecstack&#34;</span>
+</span></span><span class="line"><span class="ln">51</span><span class="cl">    <span class="s2">&#34;-Wl,-z,relro&#34;</span>
+</span></span><span class="line"><span class="ln">52</span><span class="cl">    <span class="s2">&#34;-Wl,-z,now&#34;</span>
+</span></span><span class="line"><span class="ln">53</span><span class="cl">    <span class="s2">&#34;-Wl,--as-needed&#34;</span>
+</span></span><span class="line"><span class="ln">54</span><span class="cl">    <span class="s2">&#34;-Wl,--no-copy-dt-needed-entries&#34;</span>
+</span></span><span class="line"><span class="ln">55</span><span class="cl">    <span class="s2">&#34;-fno-delete-null-pointer-checks&#34;</span>
+</span></span><span class="line"><span class="ln">56</span><span class="cl">    <span class="s2">&#34;-fno-strict-overflow&#34;</span>
+</span></span><span class="line"><span class="ln">57</span><span class="cl">    <span class="s2">&#34;-fno-strict-aliasing&#34;</span>
+</span></span><span class="line"><span class="ln">58</span><span class="cl">    <span class="s2">&#34;-ftrivial-auto-var-init=zero&#34;</span>
+</span></span><span class="line"><span class="ln">59</span><span class="cl">    <span class="s2">&#34;-fno-exceptions&#34;</span>
+</span></span><span class="line"><span class="ln">60</span><span class="cl">    <span class="s2">&#34;-fno-rtti&#34;</span>
+</span></span><span class="line"><span class="ln">61</span><span class="cl"><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">62</span><span class="cl"><span class="err">
+</span></span></span><span class="line"><span class="ln">63</span><span class="cl"><span class="nb">set</span><span class="p">(</span><span class="s">DEBUG_COMPILER_FLAGS</span>
+</span></span><span class="line"><span class="ln">64</span><span class="cl">    <span class="s2">&#34;-Og&#34;</span>
+</span></span><span class="line"><span class="ln">65</span><span class="cl">    <span class="s2">&#34;-D_DEBUG&#34;</span>
+</span></span><span class="line"><span class="ln">66</span><span class="cl">    <span class="s2">&#34;-fverbose-asm&#34;</span>
+</span></span><span class="line"><span class="ln">67</span><span class="cl"><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">68</span><span class="cl"><span class="err">
+</span></span></span><span class="line"><span class="ln">69</span><span class="cl"><span class="nb">set</span><span class="p">(</span><span class="s">RELEASE_COMPILER_FLAGS</span>
+</span></span><span class="line"><span class="ln">70</span><span class="cl">    <span class="s2">&#34;-O2&#34;</span>
+</span></span><span class="line"><span class="ln">71</span><span class="cl">    <span class="s2">&#34;-D_RELEASE&#34;</span>
+</span></span><span class="line"><span class="ln">72</span><span class="cl"><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">73</span><span class="cl"><span class="err">
+</span></span></span><span class="line"><span class="ln">74</span><span class="cl"><span class="nb">set</span><span class="p">(</span><span class="s">COMMON_LINKER_FLAGS</span>
+</span></span><span class="line"><span class="ln">75</span><span class="cl">    <span class="s2">&#34;-Wl,-z,nodlopen&#34;</span>
+</span></span><span class="line"><span class="ln">76</span><span class="cl">    <span class="s2">&#34;-Wl,-z,noexecstack&#34;</span>
+</span></span><span class="line"><span class="ln">77</span><span class="cl">    <span class="s2">&#34;-Wl,-z,relro&#34;</span>
+</span></span><span class="line"><span class="ln">78</span><span class="cl">    <span class="s2">&#34;-Wl,-z,now&#34;</span>
+</span></span><span class="line"><span class="ln">79</span><span class="cl">    <span class="s2">&#34;-Wl,--as-needed&#34;</span>
+</span></span><span class="line"><span class="ln">80</span><span class="cl">    <span class="s2">&#34;-Wl,--no-copy-dt-needed-entries&#34;</span>
+</span></span><span class="line"><span class="ln">81</span><span class="cl"><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">82</span><span class="cl"><span class="err">
+</span></span></span><span class="line"><span class="ln">83</span><span class="cl"><span class="nb">set</span><span class="p">(</span><span class="s">DEBUG_LINKER_FLAGS</span>
+</span></span><span class="line"><span class="ln">84</span><span class="cl"><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">85</span><span class="cl"><span class="err">
+</span></span></span><span class="line"><span class="ln">86</span><span class="cl"><span class="nb">set</span><span class="p">(</span><span class="s">RELEASE_LINKER_FLAGS</span>
+</span></span><span class="line"><span class="ln">87</span><span class="cl">    <span class="s2">&#34;-flto&#34;</span>
+</span></span><span class="line"><span class="ln">88</span><span class="cl"><span class="p">)</span></span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>Embedded software is often pilloried for security issues, so I have decided to enable
+<a href="https://best.openssf.org/Compiler-Hardening-Guides/Compiler-Options-Hardening-Guide-for-C-and-C++.html">OpenSSF&rsquo;s recommendations</a>
+for compiler flags designed to improve security.</p>
+<p>There are a few additional notes about <code>compile_flags.cmake</code>:</p>
+<ul>
+<li>EASTL by default implicitly converts <code>char*</code> to a <code>string</code> object, causing a heap allocation where none was necessary.
+We can turn this off by defining <code>EASTL_STRING_EXPLICIT</code>. You can read more about it <a href="https://github.com/electronicarts/EASTL/blob/master/doc/Gotchas.md#char-converts-to-string-silently">here</a></li>
+<li>We are disabling exceptions and RTTI (often the case for embedded projects), since they may incur performance penalties that we won&rsquo;t tolerate. We also need to tell EASTL about this,
+which is what <code>EASTL_EXCEPTIONS_ENABLED=0</code> does. You can read about arguments for and against exceptions <a href="http://shanekirk.com/2015/06/c-exceptions-the-good-the-bad-and-the-ugly/">here</a>. If you do want
+to use exceptions, then you need to remove the lines containing <code>EASTL_EXCEPTIONS_ENABLED=0</code> and <code>-fno-exceptions</code></li>
+<li>Debugging symbols are present in release builds too. We can always remove them using the <code>strip</code> command</li>
+<li>No <a href="https://pvs-studio.com/en/blog/posts/cpp/0998/">RTTI</a>, so no <code>dynamic_cast</code></li>
+</ul>
+<p>The project structure is as follows:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln"> 1</span><span class="cl">./
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl">├── include/
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl">│   ├── EABase/
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">│   ├── EASTL/
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl">│   └── volk/
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">├── lib/
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">│   ├── libEASTL.a
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">│   ├── libVkLayer_khronos_validation.so*
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">│   ├── libvolk.a
+</span></span><span class="line"><span class="ln">10</span><span class="cl">│   ├── libvulkan.so*
+</span></span><span class="line"><span class="ln">11</span><span class="cl">├── src/
+</span></span><span class="line"><span class="ln">12</span><span class="cl">│   ├── ivalid.hpp
+</span></span><span class="line"><span class="ln">13</span><span class="cl">│   ├── main.cpp
+</span></span><span class="line"><span class="ln">14</span><span class="cl">│   ├── memcpy.cpp
+</span></span><span class="line"><span class="ln">15</span><span class="cl">│   ├── memcpy.hpp
+</span></span><span class="line"><span class="ln">16</span><span class="cl">│   ├── memory.cpp
+</span></span><span class="line"><span class="ln">17</span><span class="cl">│   ├── util.hpp
+</span></span><span class="line"><span class="ln">18</span><span class="cl">│   ├── zero-copy.cpp
+</span></span><span class="line"><span class="ln">19</span><span class="cl">│   └── zero-copy.hpp
+</span></span><span class="line"><span class="ln">20</span><span class="cl">├── CMakeLists.txt
+</span></span><span class="line"><span class="ln">21</span><span class="cl">├── compile_flags.cmake
+</span></span><span class="line"><span class="ln">22</span><span class="cl">└── compile_flags.txt</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>EASTL expects custom <code>new</code> and <code>new[]</code> functions with specific parameters. So <code>memory.cpp</code> defines them:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="c1">// memory.cpp
+</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;cstddef&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;cstdlib&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="ln"> 5</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl"><span class="c1">///////////////////////////////////////////////////////////////////////////
+</span></span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="kt">void</span><span class="o">*</span> <span class="k">operator</span> <span class="k">new</span><span class="p">[](</span><span class="n">size_t</span> <span class="n">size</span><span class="p">,</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">                     <span class="na">[[maybe_unused]]</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">pName</span><span class="p">,</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">                     <span class="na">[[maybe_unused]]</span> <span class="kt">int</span> <span class="n">flags</span><span class="p">,</span>
+</span></span><span class="line"><span class="ln">10</span><span class="cl">                     <span class="na">[[maybe_unused]]</span> <span class="kt">unsigned</span> <span class="n">debugFlags</span><span class="p">,</span>
+</span></span><span class="line"><span class="ln">11</span><span class="cl">                     <span class="na">[[maybe_unused]]</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">file</span><span class="p">,</span>
+</span></span><span class="line"><span class="ln">12</span><span class="cl">                     <span class="na">[[maybe_unused]]</span> <span class="kt">int</span> <span class="n">line</span><span class="p">)</span>
+</span></span><span class="line"><span class="ln">13</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln">14</span><span class="cl">    <span class="k">return</span> <span class="nf">malloc</span><span class="p">(</span><span class="n">size</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">15</span><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="ln">16</span><span class="cl">
+</span></span><span class="line"><span class="ln">17</span><span class="cl"><span class="c1">///////////////////////////////////////////////////////////////////////////
+</span></span></span><span class="line"><span class="ln">18</span><span class="cl"><span class="kt">void</span><span class="o">*</span> <span class="k">operator</span> <span class="k">new</span><span class="p">[](</span><span class="n">size_t</span> <span class="n">size</span><span class="p">,</span>
+</span></span><span class="line"><span class="ln">19</span><span class="cl">                     <span class="n">size_t</span> <span class="n">alignment</span><span class="p">,</span>
+</span></span><span class="line"><span class="ln">20</span><span class="cl">                     <span class="na">[[maybe_unused]]</span> <span class="n">size_t</span> <span class="n">offset</span><span class="p">,</span>
+</span></span><span class="line"><span class="ln">21</span><span class="cl">                     <span class="na">[[maybe_unused]]</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">pName</span><span class="p">,</span>
+</span></span><span class="line"><span class="ln">22</span><span class="cl">                     <span class="na">[[maybe_unused]]</span> <span class="kt">int</span> <span class="n">flags</span><span class="p">,</span>
+</span></span><span class="line"><span class="ln">23</span><span class="cl">                     <span class="na">[[maybe_unused]]</span> <span class="kt">unsigned</span> <span class="n">debugFlags</span><span class="p">,</span>
+</span></span><span class="line"><span class="ln">24</span><span class="cl">                     <span class="na">[[maybe_unused]]</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">file</span><span class="p">,</span>
+</span></span><span class="line"><span class="ln">25</span><span class="cl">                     <span class="na">[[maybe_unused]]</span> <span class="kt">int</span> <span class="n">line</span><span class="p">)</span>
+</span></span><span class="line"><span class="ln">26</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln">27</span><span class="cl">    <span class="k">return</span> <span class="nf">aligned_alloc</span><span class="p">(</span><span class="n">alignment</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">28</span><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="ln">29</span><span class="cl">
+</span></span><span class="line"><span class="ln">30</span><span class="cl"><span class="c1">///////////////////////////////////////////////////////////////////////////
+</span></span></span><span class="line"><span class="ln">31</span><span class="cl"><span class="kt">void</span><span class="o">*</span> <span class="k">operator</span> <span class="nf">new</span><span class="p">(</span><span class="n">size_t</span> <span class="n">size</span><span class="p">,</span>
+</span></span><span class="line"><span class="ln">32</span><span class="cl">                   <span class="na">[[maybe_unused]]</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">name</span><span class="p">,</span>
+</span></span><span class="line"><span class="ln">33</span><span class="cl">                   <span class="na">[[maybe_unused]]</span> <span class="kt">int</span> <span class="n">flags</span><span class="p">,</span>
+</span></span><span class="line"><span class="ln">34</span><span class="cl">                   <span class="na">[[maybe_unused]]</span> <span class="kt">unsigned</span> <span class="n">debugFlags</span><span class="p">,</span>
+</span></span><span class="line"><span class="ln">35</span><span class="cl">                   <span class="na">[[maybe_unused]]</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">file</span><span class="p">,</span>
+</span></span><span class="line"><span class="ln">36</span><span class="cl">                   <span class="na">[[maybe_unused]]</span> <span class="kt">int</span> <span class="n">line</span><span class="p">)</span>
+</span></span><span class="line"><span class="ln">37</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln">38</span><span class="cl">    <span class="k">return</span> <span class="n">malloc</span><span class="p">(</span><span class="n">size</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">39</span><span class="cl"><span class="p">}</span></span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p><code>compile_flags.txt</code> is a simple text file that contains the compiler flags passed to <code>clangd</code> by neovim.</p>
+<p><code>memcpy.cpp</code> will be our first attempt at utilizing Vulkan for image processing, using <code>memcpy()</code> calls as noted previously.
+Then, we are going to write a zero-copy version in <code>zero-copy.cpp</code>. We will compare the performance of <code>memcpy.cpp</code> and
+<code>zero-copy.cpp</code> to see which one is more efficient. There is also <code>main.cpp</code>, which will accept a command-line flag to switch
+between these two implementations: <code>./main -memcpy</code> will invoke the <code>memcpy()</code>-based pipeline, while <code>./main -zero-copy</code> will
+run the <strong>zero-copy</strong> pipeline. Note that you can download this project from the <a href="https://github.com/0xdeadf1sh/ZeroCopyVulkan">Github repository</a>
+like this:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl">git clone https://github.com/0xdeadf1sh/ZeroCopyVulkan</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>Now that the project is set up, we can start writing some code.</p>
+<h3 class="heading" id="initial-scaffolding">
+  Initial scaffolding
+  <a class="anchor" href="#initial-scaffolding">#</a>
+</h3>
+<p>Open <code>memcpy.hpp</code> and add the following lines:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="c1">// memcpy.hpp
+</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="cp">#pragma once
+</span></span></span><span class="line"><span class="ln"> 4</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;volk/volk.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="ln"> 6</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="k">namespace</span> <span class="n">zcv</span><span class="o">::</span><span class="n">memcpy</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="c1">///////////////////////////////////////////////////////////////////////////
+</span></span></span><span class="line"><span class="ln">10</span><span class="cl">    <span class="c1">////////////////////////////////// ENTRY //////////////////////////////////
+</span></span></span><span class="line"><span class="ln">11</span><span class="cl">    <span class="c1">///////////////////////////////////////////////////////////////////////////
+</span></span></span><span class="line"><span class="ln">12</span><span class="cl">    <span class="kt">int</span> <span class="nf">main</span><span class="p">();</span>
+</span></span><span class="line"><span class="ln">13</span><span class="cl"><span class="p">}</span></span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>Open <code>memcpy.cpp</code> and add the following:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="c1">// memcpy.cpp
+</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="cp">#include</span> <span class="cpf">&#34;memcpy.hpp&#34;</span><span class="cp">
+</span></span></span><span class="line"><span class="ln"> 4</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;cstdlib&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="ln"> 6</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="k">namespace</span> <span class="n">zcv</span><span class="o">::</span><span class="n">memcpy</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="c1">///////////////////////////////////////////////////////////////////////////
+</span></span></span><span class="line"><span class="ln">10</span><span class="cl">    <span class="c1">////////////////////////////////// ENTRY //////////////////////////////////
+</span></span></span><span class="line"><span class="ln">11</span><span class="cl">    <span class="c1">///////////////////////////////////////////////////////////////////////////
+</span></span></span><span class="line"><span class="ln">12</span><span class="cl">    <span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln">13</span><span class="cl">    <span class="p">{</span>
+</span></span><span class="line"><span class="ln">14</span><span class="cl">        <span class="k">return</span> <span class="n">EXIT_SUCCESS</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">15</span><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="ln">16</span><span class="cl"><span class="p">}</span></span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>Now do the same for <code>zero-copy.hpp</code> and <code>zero-copy.cpp</code>:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="c1">// zero-copy.hpp
+</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="cp">#pragma once
+</span></span></span><span class="line"><span class="ln"> 4</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;volk/volk.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="ln"> 6</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="k">namespace</span> <span class="n">zcv</span><span class="o">::</span><span class="n">zerocopy</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="c1">///////////////////////////////////////////////////////////////////////////
+</span></span></span><span class="line"><span class="ln">10</span><span class="cl">    <span class="c1">////////////////////////////////// ENTRY //////////////////////////////////
+</span></span></span><span class="line"><span class="ln">11</span><span class="cl">    <span class="c1">///////////////////////////////////////////////////////////////////////////
+</span></span></span><span class="line"><span class="ln">12</span><span class="cl">    <span class="kt">int</span> <span class="nf">main</span><span class="p">();</span>
+</span></span><span class="line"><span class="ln">13</span><span class="cl"><span class="p">}</span></span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="c1">// zero-copy.cpp
+</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="cp">#include</span> <span class="cpf">&#34;zero-copy.hpp&#34;</span><span class="cp">
+</span></span></span><span class="line"><span class="ln"> 4</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;cstdlib&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="ln"> 6</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="k">namespace</span> <span class="n">zcv</span><span class="o">::</span><span class="n">zerocopy</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="c1">///////////////////////////////////////////////////////////////////////////
+</span></span></span><span class="line"><span class="ln">10</span><span class="cl">    <span class="c1">////////////////////////////////// ENTRY //////////////////////////////////
+</span></span></span><span class="line"><span class="ln">11</span><span class="cl">    <span class="c1">///////////////////////////////////////////////////////////////////////////
+</span></span></span><span class="line"><span class="ln">12</span><span class="cl">    <span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln">13</span><span class="cl">    <span class="p">{</span>
+</span></span><span class="line"><span class="ln">14</span><span class="cl">        <span class="k">return</span> <span class="n">EXIT_SUCCESS</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">15</span><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="ln">16</span><span class="cl"><span class="p">}</span></span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>We will put the memcpy and zero-copy implementations in their own respective namespaces, so that their
+symbols don&rsquo;t conflict with each other. Both have a <code>main()</code> function that acts as an &ldquo;entry-point&rdquo;.</p>
+<p>Now write the code for <code>main.cpp</code>:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="c1">// main.cpp
+</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="cp">#include</span> <span class="cpf">&#34;memcpy.hpp&#34;</span><span class="cp">
+</span></span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="cp">#include</span> <span class="cpf">&#34;zero-copy.hpp&#34;</span><span class="cp">
+</span></span></span><span class="line"><span class="ln"> 5</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;print&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;cstdlib&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="ln"> 8</span><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;cstring&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="ln"> 9</span><span class="cl">
+</span></span><span class="line"><span class="ln">10</span><span class="cl"><span class="c1">///////////////////////////////////////////////////////////////////////////
+</span></span></span><span class="line"><span class="ln">11</span><span class="cl"><span class="c1">////////////////////////////////// ENTRY //////////////////////////////////
+</span></span></span><span class="line"><span class="ln">12</span><span class="cl"><span class="c1">///////////////////////////////////////////////////////////////////////////
+</span></span></span><span class="line"><span class="ln">13</span><span class="cl"><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span><span class="o">**</span> <span class="n">argv</span><span class="p">)</span>
+</span></span><span class="line"><span class="ln">14</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln">15</span><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">argc</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">16</span><span class="cl">        <span class="n">std</span><span class="o">::</span><span class="n">println</span><span class="p">(</span><span class="s">&#34;Usage: &#39;{} -memcpy&#39; OR &#39;{} -zero-copy&#39;&#34;</span><span class="p">,</span> <span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+</span></span><span class="line"><span class="ln">17</span><span class="cl">                                                               <span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+</span></span><span class="line"><span class="ln">18</span><span class="cl">        <span class="k">return</span> <span class="n">EXIT_SUCCESS</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">19</span><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="ln">20</span><span class="cl">
+</span></span><span class="line"><span class="ln">21</span><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">strncmp</span><span class="p">(</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s">&#34;-memcpy&#34;</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">22</span><span class="cl">        <span class="k">return</span> <span class="n">zcv</span><span class="o">::</span><span class="n">memcpy</span><span class="o">::</span><span class="n">main</span><span class="p">();</span>
+</span></span><span class="line"><span class="ln">23</span><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="ln">24</span><span class="cl">    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">strncmp</span><span class="p">(</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s">&#34;-zero-copy&#34;</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">25</span><span class="cl">        <span class="k">return</span> <span class="n">zcv</span><span class="o">::</span><span class="n">zerocopy</span><span class="o">::</span><span class="n">main</span><span class="p">();</span>
+</span></span><span class="line"><span class="ln">26</span><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="ln">27</span><span class="cl">
+</span></span><span class="line"><span class="ln">28</span><span class="cl">    <span class="n">std</span><span class="o">::</span><span class="n">println</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&#34;{}: ERROR: &#39;{}&#39; is an unknown option!&#34;</span><span class="p">,</span> <span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+</span></span><span class="line"><span class="ln">29</span><span class="cl">                                                                  <span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+</span></span><span class="line"><span class="ln">30</span><span class="cl">
+</span></span><span class="line"><span class="ln">31</span><span class="cl">    <span class="k">return</span> <span class="n">EXIT_FAILURE</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">32</span><span class="cl"><span class="p">}</span></span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>Our <code>main.cpp</code> is simple&mdash;we check whether the user has passed <code>-memcpy</code> or <code>-zero-copy</code>,
+and then initiate the appropriate pipeline. Otherwise, we print an error and exit. Compile and run the
+project with:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl">cmake -B build -DCMAKE_BUILD_TYPE<span class="o">=</span>Debug .
+</span></span><span class="line"><span class="ln">2</span><span class="cl">cmake --build build --parallel</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>For release mode, type the following:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl">cmake -B build -DCMAKE_BUILD_TYPE<span class="o">=</span>Release .
+</span></span><span class="line"><span class="ln">2</span><span class="cl">cmake --build build --parallel</span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<blockquote>
+<p>Note: Our project doesn&rsquo;t need to pass <code>RelWithDebInfo</code> to <code>CMAKE_BUILD_TYPE</code>, because we already pass the <code>-g</code> option
+to the compiler in <code>compile_flags.cmake</code>.</p>
+</blockquote>
+<blockquote>
+<p>Another note: If you don&rsquo;t want to lose your debug build when generating a release build, you can put these
+executables in different directories like this:
+<code>cmake -B build/debug -DCMAKE_BUILD_TYPE=Debug</code> (for debug builds), and,
+<code>cmake -B build/release -DCMAKE_BUILD_TYPE=Release</code> (for release builds)</p>
+</blockquote>
+<p>This will produce a binary called <code>ZeroCopyVulkan</code> in the <code>build</code> directory.</p>
+<p>Because we have disabled exceptions, we will need another mechanism to percolate the errors from the implementations
+to the <code>main</code> routine. A simple way to do that is to define an interface called <code>IValid</code> that by default represents
+a &ldquo;valid&rdquo; object, but can be made &ldquo;invalid&rdquo; by the class that implements it. Here&rsquo;s its source code:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="c1">// ivalid.hpp
+</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="cp">#pragma once
+</span></span></span><span class="line"><span class="ln"> 4</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="k">namespace</span> <span class="n">zcv</span>
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">    <span class="c1">///////////////////////////////////////////////////////////////////////////
+</span></span></span><span class="line"><span class="ln"> 8</span><span class="cl">    <span class="k">class</span> <span class="nc">IValid</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="p">{</span>
+</span></span><span class="line"><span class="ln">10</span><span class="cl">    <span class="k">private</span><span class="o">:</span>
+</span></span><span class="line"><span class="ln">11</span><span class="cl">        <span class="kt">bool</span> <span class="n">m_isValid</span>          <span class="p">{</span> <span class="nb">true</span>                  <span class="p">};</span>
+</span></span><span class="line"><span class="ln">12</span><span class="cl">
+</span></span><span class="line"><span class="ln">13</span><span class="cl">    <span class="k">protected</span><span class="o">:</span>
+</span></span><span class="line"><span class="ln">14</span><span class="cl">        <span class="kt">void</span> <span class="n">invalidate</span><span class="p">()</span>       <span class="p">{</span> <span class="n">m_isValid</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>    <span class="p">}</span>
+</span></span><span class="line"><span class="ln">15</span><span class="cl">
+</span></span><span class="line"><span class="ln">16</span><span class="cl">    <span class="k">public</span><span class="o">:</span>
+</span></span><span class="line"><span class="ln">17</span><span class="cl">        <span class="kt">bool</span> <span class="n">isValid</span><span class="p">()</span> <span class="k">const</span>    <span class="p">{</span> <span class="k">return</span> <span class="n">m_isValid</span><span class="p">;</span>     <span class="p">}</span>
+</span></span><span class="line"><span class="ln">18</span><span class="cl">
+</span></span><span class="line"><span class="ln">19</span><span class="cl">        <span class="k">virtual</span> <span class="o">~</span><span class="n">IValid</span><span class="p">()</span>       <span class="p">{}</span>
+</span></span><span class="line"><span class="ln">20</span><span class="cl">    <span class="p">};</span>
+</span></span><span class="line"><span class="ln">21</span><span class="cl">
+</span></span><span class="line"><span class="ln">22</span><span class="cl">    <span class="c1">///////////////////////////////////////////////////////////////////////////
+</span></span></span><span class="line"><span class="ln">23</span><span class="cl">    <span class="cp">#define VALIDATE_OBJECT(OBJECT)                                         \
+</span></span></span><span class="line"><span class="ln">24</span><span class="cl"><span class="cp">        if (!(OBJECT).isValid()) {                                          \
+</span></span></span><span class="line"><span class="ln">25</span><span class="cl"><span class="cp">            std::println(stderr, #OBJECT &#34; is not valid at file &#34;           \
+</span></span></span><span class="line"><span class="ln">26</span><span class="cl"><span class="cp">                                 &#34;&#39;{}&#39;, line &#39;{}&#39;&#34;, __FILE__, __LINE__);    \
+</span></span></span><span class="line"><span class="ln">27</span><span class="cl"><span class="cp">            return EXIT_FAILURE;                                            \
+</span></span></span><span class="line"><span class="ln">28</span><span class="cl"><span class="cp">        }
+</span></span></span><span class="line"><span class="ln">29</span><span class="cl">
+</span></span><span class="line"><span class="ln">30</span><span class="cl">    <span class="c1">///////////////////////////////////////////////////////////////////////////
+</span></span></span><span class="line"><span class="ln">31</span><span class="cl">    <span class="cp">#define VALIDATE_FUNCTION(FUNCTION_CALL)                                \
+</span></span></span><span class="line"><span class="ln">32</span><span class="cl"><span class="cp">        if (EXIT_SUCCESS != FUNCTION_CALL) {                                \
+</span></span></span><span class="line"><span class="ln">33</span><span class="cl"><span class="cp">            std::println(stderr, #FUNCTION_CALL &#34; is not valid at file &#34;    \
+</span></span></span><span class="line"><span class="ln">34</span><span class="cl"><span class="cp">                                 &#34;&#39;{}&#39;, line &#39;{}&#39;&#34;, __FILE__, __LINE__);    \
+</span></span></span><span class="line"><span class="ln">35</span><span class="cl"><span class="cp">            invalidate();                                                   \
+</span></span></span><span class="line"><span class="ln">36</span><span class="cl"><span class="cp">            return EXIT_FAILURE;                                            \
+</span></span></span><span class="line"><span class="ln">37</span><span class="cl"><span class="cp">        }
+</span></span></span><span class="line"><span class="ln">38</span><span class="cl">
+</span></span><span class="line"><span class="ln">39</span><span class="cl">    <span class="c1">///////////////////////////////////////////////////////////////////////////
+</span></span></span><span class="line"><span class="ln">40</span><span class="cl">    <span class="cp">#define VALIDATE_FUNCTION_CTOR(FUNCTION_CALL)                           \
+</span></span></span><span class="line"><span class="ln">41</span><span class="cl"><span class="cp">        if (EXIT_SUCCESS != FUNCTION_CALL) {                                \
+</span></span></span><span class="line"><span class="ln">42</span><span class="cl"><span class="cp">            std::println(stderr, #FUNCTION_CALL &#34; is not valid at file &#34;    \
+</span></span></span><span class="line"><span class="ln">43</span><span class="cl"><span class="cp">                                 &#34;&#39;{}&#39;, line &#39;{}&#39;&#34;, __FILE__, __LINE__);    \
+</span></span></span><span class="line"><span class="ln">44</span><span class="cl"><span class="cp">            invalidate();                                                   \
+</span></span></span><span class="line"><span class="ln">45</span><span class="cl"><span class="cp">            return;                                                         \
+</span></span></span><span class="line"><span class="ln">46</span><span class="cl"><span class="cp">        }
+</span></span></span><span class="line"><span class="ln">47</span><span class="cl"><span class="p">}</span></span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>The macro <code>VALIDATE_OBJECT</code> will be used to check whether the given <code>IValid</code> object
+is in a valid state. It will print an error message and return immediately if it is not.</p>
+<p>The macros <code>VALIDATE_FUNCTION</code> and <code>VALIDATE_FUNCTION_CTOR</code> will be placed inside the methods
+of our <code>IValid</code> classes. The <code>_CTOR</code> variant is for the constructor, since we can&rsquo;t return
+a value from there.</p>
+<p>We will also create <code>util.hpp</code> to store some commonly used functions and macros:</p>
+<div class="code-block">
+  <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="c1">// util.hpp
+</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="cp">#pragma once
+</span></span></span><span class="line"><span class="ln"> 4</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="c1">///////////////////////////////////////////////////////////////////////////
+</span></span></span><span class="line"><span class="ln"> 6</span><span class="cl"><span class="cp">#define BUFFER_LEN(BUFFER) (sizeof(BUFFER) / sizeof((BUFFER)[0]))
+</span></span></span><span class="line"><span class="ln"> 7</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl"><span class="k">namespace</span> <span class="n">zcv</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln">10</span><span class="cl">
+</span></span><span class="line"><span class="ln">11</span><span class="cl"><span class="p">}</span></span></span></code></pre></div>
+  <button class="copy-code-button">copy</button>
+</div>
+<p>I put <code>BUFFER_LEN</code> outside the namespace to make us remember that the preprocessor
+doesn&rsquo;t care about namespaces.</p>
+<h3 class="heading" id="initializing-vulkan">
+  Initializing Vulkan
+  <a class="anchor" href="#initializing-vulkan">#</a>
+</h3>
 <h2 class="heading" id="memcpy-is-fast">
   memcpy() is fast?
   <a class="anchor" href="#memcpy-is-fast">#</a>

@@ -45,11 +45,12 @@
   <meta property="og:locale" content="en_us">
   <meta property="og:type" content="article">
     <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2026-01-28T21:56:49+04:00">
-    <meta property="article:modified_time" content="2026-01-28T21:56:49+04:00">
+    <meta property="article:published_time" content="2026-03-01T21:56:49+04:00">
+    <meta property="article:modified_time" content="2026-03-01T21:56:49+04:00">
     <meta property="article:tag" content="Cryptography">
     <meta property="article:tag" content="Machine-Learning">
-    <meta property="article:tag" content="Vulkan">
+    <meta property="article:tag" content="Graphics-Programming">
+    <meta property="article:tag" content="Systems-Engineering">
 
 
 
@@ -118,8 +119,8 @@
           <div>
             
             <p class="single-date">
-              <time datetime="2026-01-28T21:56:49&#43;04:00">January 28, 2026</time>
-              &nbsp; · &nbsp;7 min read
+              <time datetime="2026-03-01T21:56:49&#43;04:00">March 1, 2026</time>
+              &nbsp; · &nbsp;16 min read
             </p>
           </div>
         </div>
@@ -130,7 +131,9 @@
                 </span><span>
                   <a href="http://localhost:1313/tags/machine-learning/">#Machine-Learning</a>
                 </span><span>
-                  <a href="http://localhost:1313/tags/vulkan/">#Vulkan</a>
+                  <a href="http://localhost:1313/tags/graphics-programming/">#Graphics-Programming</a>
+                </span><span>
+                  <a href="http://localhost:1313/tags/systems-engineering/">#Systems-Engineering</a>
                 </span>
         </div>
 
@@ -147,9 +150,10 @@
         <li><a href="#i-can-haz-many-forms">I Can Haz Many Forms?</a></li>
         <li><a href="#throwing-dice-in-monte-carlo">Throwing Dice in Monte Carlo</a></li>
         <li><a href="#a-slippery-slope">A Slippery Slope</a></li>
+        <li><a href="#the-enigma-machine">The Enigma Machine</a></li>
       </ul>
     </li>
-    <li><a href="#bostroms-demon">Bostrom&rsquo;s Demon</a></li>
+    <li><a href="#the-matrix">The Matrix</a></li>
   </ul>
 </nav>
       </aside>
@@ -199,9 +203,9 @@
 <p>There is an <a href="https://www.youtube.com/watch?v=tg7ovSctPX8">episode</a> of Adventure Time where the protagonist (Finn the Human)
 and his brother (Jake the Dog) find a mysterious dungeon&mdash;like an &ldquo;ancient secret temple&rdquo; (Finn&rsquo;s words, not mine).
 Finn enters first, but inadvertently steps on a trap, which seals the entrance shut. He is trapped.</p>
-<p>Undeterred, he proceeds to explore the place, only to fall (what looks to be) two stories down, seemingly unharmed.
-This is where things get interesting. He walks into a room at the center of which lies a statue of an upside-down
-snowman, surrounded by two pillars with red glowing eyes. At the end of the room is a large door&mdash;also closed&mdash;with the
+<p>Undeterred, he proceeds to explore the place, only to fall (what looks to be) two stories down a crevice, seemingly unharmed.
+This is where things get interesting. He walks into a room with a statue of an upside-down
+snowman&mdash;surrounded by two pillars with red glowing eyes. At the end of the room is a large door with the
 following letters etched on its surface: &ldquo;HALL OF EGRESS&rdquo;.</p>
 <p>
 
@@ -236,9 +240,8 @@ following letters etched on its surface: &ldquo;HALL OF EGRESS&rdquo;.</p>
     
 </figure>
 </p>
-<p>Despite how much force he applies, the door doesn&rsquo;t bulge (and Finn has enough strength to punch
-a <a href="https://www.youtube.com/watch?v=qXXcA68ZIlE">vampire</a> more than ten times his size). But then, through sheer luck, he has an
-epiphany: the door disappears once he <strong>closes his eyes</strong>.</p>
+<p>Alas, despite his many attempts, the door doesn&rsquo;t bulge (and Finn has enough strength to punch
+a <a href="https://www.youtube.com/watch?v=qXXcA68ZIlE">vampire</a> more than ten times his size). But then, through sheer luck, he discovers something peculiar: the door disappears once he <strong>closes his eyes</strong>.</p>
 <h3 class="heading" id="i-can-haz-many-forms">
   I Can Haz Many Forms?
   <a class="anchor" href="#i-can-haz-many-forms">#</a>
@@ -277,11 +280,11 @@ which isn&rsquo;t too different from C++&rsquo;s standard library. I prefer <cod
 of its emphasis on performance and some important data structures that it provides (e.g. intrusive lists).</p>
 </blockquote>
 <p>In this contrived example we have two grades of organisms: <code>Prokaryotic</code> and <code>Eukaryotic</code>.
-We would like for both of them to evolve. Alas, the code that invokes evolution is duplicated. We have
+We would like for both of them to evolve. Unfortunately, the code that invokes evolution is duplicated. We have
 to store the organisms of different grades separately and call their <code>evolve</code> methods in their own respective loops.
 Worse, what if we discover some other life form that doesn&rsquo;t fit neatly in the above dichotomy?
-More duplication! We prefer not to <a href="https://en.wikipedia.org/wiki/Don%27t_repeat_yourself">repeat ourselves</a>.</p>
-<p>C++ offers <a href="https://en.wikipedia.org/wiki/Polymorphism_(computer_science)">polymorphism</a>:</p>
+More duplication! We&rsquo;d rather prefer not to <a href="https://en.wikipedia.org/wiki/Don%27t_repeat_yourself">repeat ourselves</a>.</p>
+<p>Luckily for us, C++ offers <a href="https://en.wikipedia.org/wiki/Polymorphism_(computer_science)">polymorphism</a>:</p>
 <div class="code-block">
   <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="k">class</span> <span class="nc">Grade</span> <span class="p">{</span>
 </span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="k">public</span><span class="o">:</span>
@@ -321,24 +324,29 @@ This way, when the <code>evolve</code> function is called, the instructions beco
   <button class="copy-code-button">copy</button>
 </div>
 <p>We call this <a href="https://en.wikipedia.org/wiki/Dynamic_dispatch">dynamic dispatch</a>. Although powerful,
-one must be careful not to overuse it. There are two indirections here:</p>
+one should be careful not to overuse it. There are two indirections here:</p>
 <ol>
 <li>We dereference the pointer to the virtual function table.</li>
 <li>Then, we dereference the address of the function to begin executing its instructions.</li>
 </ol>
+<blockquote>
+<p>Uncle Bob ain&rsquo;t gonna like this.</p>
+</blockquote>
 <p>Dynamic dispatch introduces sequential dependency: the CPU can&rsquo;t know in advance which function
 to call without first looking up the address of the function stored in the table&mdash;so
 if the function (by which I mean the machine instructions that make up the function) returned by the
 <code>LOOKUP</code> instruction isn&rsquo;t already cached, the pipeline stalls. Like the CPU,
 the compiler also can&rsquo;t determine which function will be called, so
 <a href="https://en.wikipedia.org/wiki/Inline_expansion">inlining</a> is hard.</p>
+<p>Dynamic dispatch is <code>O(k)</code> where the <code>k</code> is constant. But that <code>k</code> is often large enough to incite spite in the hearts
+of many programmers (including mine).</p>
 <h3 class="heading" id="throwing-dice-in-monte-carlo">
   Throwing Dice in Monte Carlo
   <a class="anchor" href="#throwing-dice-in-monte-carlo">#</a>
 </h3>
 <p>Not all problems have closed-form solutions. What if we wanted to calculate the value of $\pi$?
-There is no function with a fixed set of instructions that can calculate $\pi$, but there exist
-instructions such that when invoked <strong>iteratively</strong>, can
+There is no function with a finite set of instructions that can compute $\pi$, but there <strong>does</strong> exist
+a finite set of instructions such that when applied <strong>iteratively</strong>, can
 obtain better and better approximations of $\pi$. Here&rsquo;s
 <a href="https://en.wikipedia.org/wiki/Srinivasa_Ramanujan">Ramanujan&rsquo;s</a> solution to this problem:</p>
 <p>$$
@@ -408,7 +416,7 @@ but you get the idea. Now suppose that we start putting random points inside the
 </p>
 <p>What&rsquo;s the probability of a point landing within a circle? Well, since the radius of the circle is 1, the area of
 the square is 4, and the area of the circle is $\pi$. So, the probability of a point landing in the circle is
-$\pi / 4$. We can exploit this to write a program that approximates the digits of $\pi$:</p>
+$\pi / 4$. We can exploit this to write a program that approximates the value of $\pi$:</p>
 <div class="code-block">
   <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;random&gt;</span><span class="cp">
 </span></span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;print&gt;</span><span class="cp">
@@ -446,8 +454,7 @@ $\pi / 4$. We can exploit this to write a program that approximates the digits o
 <p>Here we begin with the number of iterations set to 1, and then increase its magnitude by up to 7 orders.
 Because we know the probability of a point being inside the circle is $\pi / 4$, all we need to do is
 generate a bunch of points and then divide the number of points inside the circle by the total number of
-points. We then multiply this number (defined as <code>k</code>) with 4 to get the approximation of $\pi$.</p>
-<p>This outputs:</p>
+points generated. We then multiply this number (defined as <code>k</code>) with 4 to get the approximate value of $\pi$:</p>
 <div class="code-block">
   <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl">The value of pi is 4.000000000		<span class="o">(</span><span class="nv">iterations</span> <span class="o">=</span> 1<span class="o">)</span>
 </span></span><span class="line"><span class="ln">2</span><span class="cl">The value of pi is 2.799999952		<span class="o">(</span><span class="nv">iterations</span> <span class="o">=</span> 10<span class="o">)</span>
@@ -459,16 +466,14 @@ points. We then multiply this number (defined as <code>k</code>) with 4 to get t
 </span></span><span class="line"><span class="ln">8</span><span class="cl">The value of pi is 3.141742468		<span class="o">(</span><span class="nv">iterations</span> <span class="o">=</span> 10000000<span class="o">)</span></span></span></code></pre></div>
   <button class="copy-code-button">copy</button>
 </div>
-<p>The first time our algorithm was run, it just happened so that our point landed in the circle, causing
+<p>The first time our algorithm was run, it just so happened that our point landed in the circle, causing
 <code>k</code> to equal 1.0. If you run this code, there is about 21.46% chance that you will get 0.0 for the first
 value. But that doesn&rsquo;t matter, because as the number of iterations is increased, everyone running this
 code will get closer and closer to the true value of $\pi$&mdash;well, at least to the extent that the machine is capable of.
-Floating-point numbers have finite precision, and at some point errors accumulated through repeated calculations
-will start to work against us. Luckily we have developed <a href="https://en.wikipedia.org/wiki/Category:Pi_algorithms">much better algorithms</a>.</p>
+Floating-point numbers have finite precision, and at some point (wink wink) they will no longer be able to represent a signed 32-bit integer accurately. Also, there are <a href="https://en.wikipedia.org/wiki/Category:Pi_algorithms">much better algorithms</a> out there.</p>
 <p>At the time of writing this article, humanity has computed up to <a href="https://en.wikipedia.org/wiki/Chronology_of_computation_of_pi">314 trillion</a>
 digits of $\pi$, but none of these approximations is the <strong>true</strong> value of $\pi$, because the actual value is an infinite sequence
 of non-repeating digits. Alas, we cannot express infinitudes in a universe of finitudes.</p>
-<p>Below is the graph of our progress:</p>
 <p>
 
 
@@ -499,19 +504,483 @@ of non-repeating digits. Alas, we cannot express infinitudes in a universe of fi
     
 </figure>
 </p>
-<p>We have attained $\pi$-singularity before the more general <a href="https://en.wikipedia.org/wiki/Technological_singularity">technological singularity</a>.</p>
+<p>We are living in a $\pi$-singularity.</p>
 <p>This problem is interesting because although we don&rsquo;t know all the digits of $\pi$,
 we are able to come up with instructions that take us there iteratively&mdash;<strong>and</strong> we are confident that these instructions work,
-lest we would have needed to compare the results of our algorithm with the true value of $\pi$, which we don&rsquo;t have access to.</p>
-<p>But what happens when we <strong>don&rsquo;t</strong> know what the solution space looks like?</p>
+lest we would need to compare the results of our algorithm with the true value of $\pi$, which we don&rsquo;t have access to (and never will). One can say that there is no solution here, since&mdash;by definition&mdash;no number of iterations of
+even the fastest-converging algorithm will get us to the true value of $\pi$. So we are <strong>blind</strong> w.r.t. the <a href="https://en.wikipedia.org/wiki/Hyperuranion">Platonic</a> $\pi$&mdash;we will never &ldquo;see&rdquo; its true value.</p>
+<p>But what happens when there <strong>is</strong> a non-Platonic solution to a problem that the lowly beings like you
+and I can reach, but don&rsquo;t know how? That is, what if we are <strong>blind</strong> w.r.t. the <strong>path</strong> to the solution?</p>
+<p>We will use a different strategy: instead of climbing the ever-taller
+stairs to heaven, we shall descend down to <a href="https://en.wikipedia.org/wiki/Hades">Hades</a>.</p>
 <h3 class="heading" id="a-slippery-slope">
   A Slippery Slope
   <a class="anchor" href="#a-slippery-slope">#</a>
 </h3>
-<p>Eyes closed, Finn enters the maze-like tunnel. His first attempt almost gets him killed.</p>
-<h2 class="heading" id="bostroms-demon">
-  Bostrom&rsquo;s Demon
-  <a class="anchor" href="#bostroms-demon">#</a>
+<p>Eyes closed, Finn enters the maze-like tunnel. He uses his hands to &ldquo;feel&rdquo; his surroundings before making each step.
+His first attempt almost gets him killed.</p>
+<p>Fortunately, Finn can &ldquo;reset&rdquo; the simulation by opening his eyes. This puts him back where he started&mdash;he
+doesn&rsquo;t need to walk all the way back. And his memory remains intact. So he grabs a pen and draws a map,
+marking the place where he almost died:</p>
+<p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-center">
+
+    
+    
+      
+        <div class="img-container" style="--w: 1570; --h: 1153;">
+            <img loading="lazy" alt="Finn&rsquo;s map" src="/posts/img/finn_map.png#center" width="1570" height="1153">
+        </div>
+      
+    
+
+    
+    <div class="caption-container">
+        <figcaption> Image Credit: Adventure Time / Cartoon Network </figcaption>
+    </div>
+    
+</figure>
+</p>
+<p>Finn <strong>knows</strong> that there is a solution&mdash;because of the word &ldquo;EGRESS&rdquo;. But he doesn&rsquo;t know how to <strong>reach</strong>
+that solution, so he must try multiple times. <strong>The paths that lead to spikes are marked.</strong> This is the crucial part.
+Finn reasons that his knowledge of where the spikes are (i.e. the erroneous paths) will guide him toward the exit.
+Do you think that his reasoning is sound?</p>
+<p>The idea of using the error of the previous attempt as a guide toward the correct solution
+emerges in many problems. Consider the following plot of exoplanets where the horizontal axis denotes
+planetary mass and the vertical axis is the planetary radius (the plot also shows solar masses on the right,
+but to keep things simple we will simply ignore that):</p>
+<p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-center">
+
+    
+    
+      
+        <div class="img-container" style="--w: 1600; --h: 997;">
+            <img loading="lazy" alt="Exoplanets plotted" src="/posts/img/exoplanets.jpeg#center" width="1600" height="997">
+        </div>
+      
+    
+
+    
+    <div class="caption-container">
+        <figcaption> ~3500 exoplanets plotted with respect to their mass and radius </figcaption>
+    </div>
+    
+</figure>
+</p>
+<p>This is from a <a href="https://www.reddit.com/r/dataisbeautiful/comments/1fnvmvh/oc_i_plotted_data_from_3500_exoplanets_comparing/">reddit post</a> a few years ago. I inverted the colors so that your eyes don&rsquo;t bleed when looking at it.</p>
+<p>What if I wanted to plot a straight line that could reveal the relationship between planetary mass and radius?
+Such that when I discovered a new exoplanet of a given mass, I could also predict its radius?</p>
+<p>A straight line can be defined as a function $f(x)$ such that:</p>
+<p>$$f(x) = mx + b$$</p>
+<p>where $m$ is the slope of the line and $b$ is the y-intercept. Therefore, we need to come up with values for $m$ and
+$b$ that would most accurately predict the radius given mass.</p>
+<p>First, we initialize $m$ and $b$ with random numbers. This is akin to Finn taking some random path through the maze for the first time.
+Say $m = 0.0$ and $b = 1.0$. To make things easier to follow, I created a table that maps the mass of some planets
+to their radii:</p>
+<blockquote>
+<p>Note: I didn&rsquo;t really extract the values from the plot&mdash;I simply &ldquo;eyeballed&rdquo; them. Also,
+the values are powers of $10$, e.g. $0.01$ means $10^{0.01}$.</p>
+</blockquote>
+
+<div class="table-outer">
+    <table>
+        <thead>
+            <tr>
+                <th>Mass</th>
+                <th>Radius</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>0.01</td>
+                <td>0.02</td>
+            </tr>
+            <tr>
+                <td>0.60</td>
+                <td>0.10</td>
+            </tr>
+            <tr>
+                <td>1.10</td>
+                <td>0.60</td>
+            </tr>
+            <tr>
+                <td>2.30</td>
+                <td>1.10</td>
+            </tr>
+            <tr>
+                <td>2.50</td>
+                <td>1.20</td>
+            </tr>
+        </tbody>
+    </table>
+</div><p>Let us begin with the first row. Substituting $0.0$ for $m$ and $1.0$ for $b$, we have:</p>
+<p>$$f(0.01) = 0.0 * 0.01 + 1.0 = 1.0$$</p>
+<p>Oops! Our line predicted a value of $1.0$ for the radius (given a mass of $0.01$), when it should have been $0.02$!
+We fell to a spike trap!</p>
+<p>What do we do? First, we need a way of quantifying the error. There are multiple ways of doing this.
+For example, we could simply subtract the predicted value ($1.0$) from the observed value ($0.02$):</p>
+<p>$$\epsilon = 1.0 - 0.02 = 0.98$$</p>
+<p>where $\epsilon$ is the error. While that is certainly doable, this way of computing the error makes
+the proceeding calculations harder. To understand why, let me introduce a different way of computing the error:</p>
+<p>$$\epsilon = (v_{predicted} - v_{observed})^2$$</p>
+<p>This is called <strong>squared error loss</strong>. It belongs to a class of functions called <strong>loss functions</strong>. The
+purpose of a loss function is to quantify the accuracy of some predictor (which, in our case, is a straight line).
+If we now apply this function for every value in the table above, we get this:</p>
+
+<div class="table-outer">
+    <table>
+        <thead>
+            <tr>
+                <th>Mass</th>
+                <th>Actual Radius</th>
+                <th>Predicted Radius</th>
+                <th>Error ($\epsilon$)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>0.01</td>
+                <td>0.02</td>
+                <td>1.0</td>
+                <td>0.9604</td>
+            </tr>
+            <tr>
+                <td>0.60</td>
+                <td>0.10</td>
+                <td>1.0</td>
+                <td>0.8100</td>
+            </tr>
+            <tr>
+                <td>1.10</td>
+                <td>0.60</td>
+                <td>1.0</td>
+                <td>0.1600</td>
+            </tr>
+            <tr>
+                <td>2.30</td>
+                <td>1.10</td>
+                <td>1.0</td>
+                <td>0.0100</td>
+            </tr>
+            <tr>
+                <td>2.50</td>
+                <td>1.20</td>
+                <td>1.0</td>
+                <td>0.0400</td>
+            </tr>
+        </tbody>
+    </table>
+</div><p>Our line predicts the same radius for all masses, since $m = 0.0$. But this needs to change. We need to nudge the
+value of $m$ (and $b$) in order to minimize the error. Our assumption is that by minimizing the error, our line
+will become more accurate in predicting planetary radii.</p>
+<p>Remember that our predictor is a straight line:</p>
+<p>$$f(x) = mx + b$$</p>
+<p>So another way of writing the loss function is:</p>
+<p>$$\epsilon = (mx + b - v_{observed})^2$$</p>
+<p>I simply replaced $v_{predicted}$ with the equation of the line. In order to minimize the error ($\epsilon$),
+we need to minimize the expression $(mx + b - v_{observed})^2$.</p>
+<p>You might be tempted to think that $\epsilon$ is a quadratic function; maybe you think:</p>
+<p>$$\epsilon(x) = (mx + b - v_{observed})^2$$</p>
+<p>But this is not the case! $x$ is <strong>not</strong> the independent variable here&mdash;$x$ is the mass of the planet, which
+we cannot change. Nor can we change the radius ($v_{observed}$), so the only variables remaining are $m$ and $b$.</p>
+<p>Our loss function is a <a href="https://en.wikipedia.org/wiki/Paraboloid">paraboloid</a> defined in 3D space:</p>
+<p>$$\epsilon(m, b) = (mx + b - v_{observed})^2$$</p>
+<p>Here&rsquo;s what it looks like:</p>
+<p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-center">
+
+    
+    
+      
+        <div class="img-container" style="--w: 257; --h: 300;">
+            <img loading="lazy" alt="Paraboloid" src="/posts/img/paraboloid.png#center" width="257" height="300">
+        </div>
+      
+    
+
+    
+    <div class="caption-container">
+        <figcaption> Paraboloid </figcaption>
+    </div>
+    
+</figure>
+</p>
+<p>Imagine yourself standing somewhere inside that shape. Also imagine that, like Finn, you are blindfolded,
+and removing the blindfold puts you back where you started.
+How do you determine which direction to walk in order to go down
+toward the lowest point? To the underworld&mdash;where Orpheus went to rescue his lover?</p>
+<blockquote>
+<p>First, let&rsquo;s understand why we need to <strong>descend</strong> to the lowest point of the paraboloid.
+Remember that, in order to minimize loss,
+we need to minimize the expression $(mx + b - v_{observed})^2$. That means for all $x$ and $v_{observed}$,
+we must figure out which values of $m$ and $b$ will &ldquo;place&rdquo; us at the bottom&mdash;or, at least, very close to it. For it is the lowest point in the paraboloid that
+will produce the least error. Naturally, it beckons us to descend toward it.
+If you were to ascend instead, then your loss values would become very high, and your predictions very wrong!</p>
+</blockquote>
+<p>Finn used his hands to feel the walls as he walked through the maze. We don&rsquo;t have walls. Instead, we have a
+curved surface. So, we can use our feet to feel the ground and find out where we should step. Mathematically,
+this is equivalent to moving in the <strong>opposite</strong> direction of the <strong>gradient</strong> of the loss function.</p>
+<p>The gradient can be found by computing the derivatives of the loss function with respect to its parameters&mdash;which are
+$m$ and $b$. To find these derivatives we can use the <a href="https://en.wikipedia.org/wiki/Chain_rule">chain rule</a>.</p>
+<p>For example, the derivative of $\epsilon(m, b)$ with respect to $m$ is:</p>
+<p>$$2x(mx + b - v_{observed})$$</p>
+<p>First, we find the derivative of $(mx + b - v_{observed})^2$, which is $2(mx + b - v_{observed})$. Then,
+using the chain rule, we multiply this with the derivative of $mx$, which is $x$.</p>
+<p>Using the same method, we then find the derivative of $\epsilon(m, b)$ with respect to $b$, which is:</p>
+<p>$$2(mx + b - v_{observed})$$</p>
+<p>Therefore, the <strong>gradient</strong> of $\epsilon(m, b)$ is defined as:</p>
+<p>$$
+\nabla{\epsilon} =
+\begin{bmatrix}
+2x(mx + b - v_{observed} \\
+2(mx + b - v_{observed}) \\
+\end{bmatrix}
+$$</p>
+<p>Formally:</p>
+<p>$$
+\nabla{\epsilon} =
+\begin{bmatrix}
+\frac{\partial}{\partial m}\epsilon \\
+\\
+\frac{\partial}{\partial b}\epsilon \\
+\end{bmatrix}
+$$</p>
+<blockquote>
+<p>Note: We chose the <strong>squared error loss</strong> function, because, for one it is easily differentiable, but also because it helps
+us penalize errors proportionally. That is, it produces large errors when we are &ldquo;far away&rdquo; from the solution, but
+much smaller errors as we get &ldquo;closer&rdquo;.</p>
+</blockquote>
+<p>Now let&rsquo;s actually calculate the values of $\frac{\partial}{\partial m}$ and $\frac{\partial}{\partial b}$
+for each of our planets:</p>
+
+<div class="table-outer">
+    <table>
+        <thead>
+            <tr>
+                <th>Mass</th>
+                <th>Actual Radius</th>
+                <th>Predicted Radius</th>
+                <th>Error ($\epsilon$)</th>
+                <th>$\frac{\partial}{\partial m}$</th>
+                <th>$\frac{\partial}{\partial b}$</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>0.01</td>
+                <td>0.02</td>
+                <td>1.0</td>
+                <td>0.9604</td>
+                <td>0.0196</td>
+                <td>1.9600</td>
+            </tr>
+            <tr>
+                <td>0.60</td>
+                <td>0.10</td>
+                <td>1.0</td>
+                <td>0.8100</td>
+                <td>1.0800</td>
+                <td>1.8000</td>
+            </tr>
+            <tr>
+                <td>1.10</td>
+                <td>0.60</td>
+                <td>1.0</td>
+                <td>0.1600</td>
+                <td>0.8800</td>
+                <td>0.8000</td>
+            </tr>
+            <tr>
+                <td>2.30</td>
+                <td>1.10</td>
+                <td>1.0</td>
+                <td>0.0100</td>
+                <td>-0.4600</td>
+                <td>-0.2000</td>
+            </tr>
+            <tr>
+                <td>2.50</td>
+                <td>1.20</td>
+                <td>1.0</td>
+                <td>0.0400</td>
+                <td>-1.0000</td>
+                <td>-0.4000</td>
+            </tr>
+        </tbody>
+    </table>
+</div><p>We need to make sure that our steps aren&rsquo;t too large&mdash;that is, we don&rsquo;t end up jumping all over the place. To fix
+this, we can introduce a parameter called the <strong>learning rate</strong>, which is a small number that we multiply with our
+derivatives before modifying $b$ and $m$. For this example, we set the learning rate to $0.1$.</p>
+<blockquote>
+<p>Note: The name &ldquo;learning rate&rdquo; is a misnomer. It should have been called &ldquo;jumping rate&rdquo;, because that&rsquo;s what it
+essentially does. Setting the learning rate to a high value won&rsquo;t actually help the predictor learn faster, it will
+simply force it to make bigger jumps. This can actually hurt us, because we may end up jumping <strong>over</strong> the minimum
+point of the parabaloid.</p>
+</blockquote>
+<p>Now let&rsquo;s find the average of our derivatives $\frac{\partial}{\partial m}$ and $\frac{\partial}{\partial b}$:</p>
+<p>$$(0.0196 + 1.0800 + 0.8800 - 0.4600 - 1.0000) / 5 = 0.10392$$
+$$(1.9600 + 1.8000 + 0.8000 - 0.2000 - 0.4000) / 5 = 0.79200$$</p>
+<p>We multiply these values with our learning rate:</p>
+<p>$$0.10392 * 0.1 = 0.010392$$
+$$0.79200 * 0.1 = 0.079200$$</p>
+<p>Then we subtract these values from $m$ and $b$, respectively:</p>
+<p>$$m&rsquo; = m - 0.010392 = 0.0 - 0.010392 = -0.010392$$
+$$b&rsquo; = b - 0.079200 = 1.0 - 0.079200 = 0.920800$$</p>
+<p>And now that we have nudged $m$ and $b$ a bit, let&rsquo;s see whether this new predictor is actually better:</p>
+
+<div class="table-outer">
+    <table>
+        <thead>
+            <tr>
+                <th>Mass</th>
+                <th>Actual Radius</th>
+                <th>Predicted Radius</th>
+                <th>Error ($\epsilon$)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>0.01</td>
+                <td>0.02</td>
+                <td>0.92069</td>
+                <td>0.811253</td>
+            </tr>
+            <tr>
+                <td>0.60</td>
+                <td>0.10</td>
+                <td>0.91456</td>
+                <td>0.663516</td>
+            </tr>
+            <tr>
+                <td>1.10</td>
+                <td>0.60</td>
+                <td>0.90937</td>
+                <td>0.095710</td>
+            </tr>
+            <tr>
+                <td>2.30</td>
+                <td>1.10</td>
+                <td>0.89689</td>
+                <td>0.041250</td>
+            </tr>
+            <tr>
+                <td>2.50</td>
+                <td>1.20</td>
+                <td>0.89482</td>
+                <td>0.093135</td>
+            </tr>
+        </tbody>
+    </table>
+</div><p>Previously, our average error was</p>
+<p>$$\frac{0.9604 + 0.8100 + 0.1600 + 0.0100 + 0.0400}{5} = 0.39608$$</p>
+<p>Our new average error is</p>
+<p>$$\frac{0.811253 + 0.663516 + 0.095710 + 0.041250 + 0.093135}{5} = 0.340973$$</p>
+<p>We have decreased the error!</p>
+<p>What we did above is called <strong>gradient descent</strong>, and it is (currently) the dominant technique by which machines
+learn. It is the reason why those data centers consume so much electricity and water, and it is method through which
+we imparted the knowledge of language to rocks. The number of parameters may differ, the way the learning rate is
+specified may differ, but the technique is more or less the same:</p>
+<ol>
+<li>Initialize the parameters of the model with random-ish values</li>
+<li>Feed the model with some numbers&mdash;producing errors.</li>
+<li>Use the errors to nudge the parameters of the model.</li>
+<li>Profit! (or loss, in <a href="https://finance.yahoo.com/news/openais-own-forecast-predicts-14-150445813.html">OpenAI&rsquo;s case</a> anyway)</li>
+</ol>
+<p>Applied iteratively, <strong>gradient descent</strong> can help us find a straight line with the highest &ldquo;predictive power&rdquo;&mdash;that is,
+a line that can predict the radius of a planet given its mass with high accuracy (or, in OpenAI&rsquo;s case, a model
+that can <a href="https://www.computerworld.com/article/4141889/gpt-5-4-solves-previously-unsolved-math-problem-with-help-from-long-forgotten-human-research.html">solve hard math problems</a>).</p>
+<blockquote>
+<p>Note: There is another version of gradient descent called <strong>stochastic gradient descent</strong>, where, instead of
+averaging the error, we compute the error for each data point and then modify the parameters of the model accordingly.
+I won&rsquo;t explain the details here, you may surf the Internet to find out more.</p>
+</blockquote>
+<p>Gradient descent helped us move closer to the solution even though we were blind w.r.t. the <strong>path</strong> to the solution.
+That is, we didn&rsquo;t know what the true path looked like, but we were able to make small steps and thus carved our own path.
+But what about Finn? Let&rsquo;s see how he is doing:</p>
+<p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-center">
+
+    
+    
+      
+        <div class="img-container" style="--w: 926; --h: 552;">
+            <img loading="lazy" alt="Finn Lost" src="/posts/img/finn_lost.png#center" width="926" height="552">
+        </div>
+      
+    
+
+    
+    <div class="caption-container">
+        <figcaption> Image Credit: Adventure Time / Cartoon Network </figcaption>
+    </div>
+    
+</figure>
+</p>
+<p>Hmm, he doesn&rsquo;t look too good. Unfortunately gradient descent didn&rsquo;t help him. But why?</p>
+<h3 class="heading" id="the-enigma-machine">
+  The Enigma Machine
+  <a class="anchor" href="#the-enigma-machine">#</a>
+</h3>
+<h2 class="heading" id="the-matrix">
+  The Matrix
+  <a class="anchor" href="#the-matrix">#</a>
 </h2>
     </div>
   </article>

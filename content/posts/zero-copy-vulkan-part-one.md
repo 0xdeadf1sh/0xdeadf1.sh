@@ -12,6 +12,8 @@ autonumber = true
 
 <!--more-->
 
+> Note: The source code for this project is hosted at [Github](https://github.com/0xdeadf1sh/ZeroCopyVulkan).
+
 ## memcpy() is slow?
 
 ### Living on the edge
@@ -21,7 +23,7 @@ It's called "Part 1: Input" because we will concern ourselves mainly with feedin
 will be called "Part 2: Output", where we will extract the processed image and then do something with it
 (e.g. save it to disk, or stream it to the local network, etc., it's up to you).
 
-To follow this tutorial you will need a Vulkan-capable GPU. I will be using [BananaPI M7](https://docs.banana-pi.org/en/BPI-M7/BananaPi_BPI-M7)
+To follow this tutorial you will need a Vulkan-capable GPU. I will be using [BananaPi M7](https://docs.banana-pi.org/en/BPI-M7/BananaPi_BPI-M7)
 since it has [ARM Mali-G610](https://developer.arm.com/Processors/Mali-G610) that can run Vulkan 1.4 applications.
 
 > Note: If you visit the link above you will see that the specification mentions Vulkan 1.2 as the most recent supported version,
@@ -30,13 +32,13 @@ I will also show how you can compile your own Vulkan drivers so that you get to 
 (not to mention being able to put breakpoints in the driver and observing what's happening under the hood---something that is
 significantly harder to do with an OpenGL driver).
 
-Another reason for choosing BananaPI M7 is that the sort of optimization that we will be implementing is done most often in embedded
+Another reason for choosing BananaPi M7 is that the sort of optimization that we will be implementing is done most often in embedded
 devices, where the device needs to **consume** some data produced by a sensor (or multiple sensors), **process** it, and
 **produce** the final output to be redirected somewhere else.
 
 Below is an image of M7 next to an actual banana:
 
-![BananaPI M7 next to a real banana](img/bananapim7.jpeg "Banana for scale")
+![BananaPi M7 next to a real banana](img/bananapim7.jpeg "Banana for scale")
 
 This thing is **small**. It comes with a [Rockchip SoC (RK3588)](https://rockchips.net/product/rk3588/)
 which, in addition to a GPU, also gives us an NPU, octa-core CPU,
@@ -45,13 +47,13 @@ use the hardware for encoding/decoding video frames, and of course Vulkan for do
 
 ### Installing Armbian
 
-First, download the Armbian image for BananaPI M7 [here](https://www.armbian.com/bananapi-m7/). Make sure to select the BSP kernel
+First, download the Armbian image for BananaPi M7 [here](https://www.armbian.com/bananapi-m7/). Make sure to select the BSP kernel
 version, because we will need the appropriate kernel drivers for hardware acceleration. You may use the minimal version or an image
 file that comes preinstalled with a desktop environment. I will be using `Armbian 26.2.1 Gnome`; if you use something else, the instructions
 may be different---you will be **on your own**.
 
 Flash the downloaded image to an SD card, for which you may use Armbian's own [flasher utility](https://github.com/armbian/imager/releases),
-or [USBImager](https://bztsrc.gitlab.io/usbimager/). Then insert the SD card to BananaPI and let it boot. Follow the on-screen instructions.
+or [USBImager](https://bztsrc.gitlab.io/usbimager/). Then insert the SD card to BananaPi and let it boot. Follow the on-screen instructions.
 Once you are presented with a GUI (or a tty console if you installed the minimal version), you will need to flash the image to internal storage
 (which in my case is an eMMC storage). First, run the `lsblk` command to see a list of devices:
 
@@ -107,8 +109,6 @@ sudo apt install build-essential                \
                  gcc-14                         \
                  g++-14                         \
                  vulkan-tools                   \
-                 vulkan-validationlayers        \
-                 libvulkan-dev
 ```
 
 We need `g++-14` because we will be using C++23 features like [designated initializers](https://en.cppreference.com/w/cpp/language/aggregate_initialization.html).
@@ -208,7 +208,8 @@ meson setup build -Dplatforms=wayland           \
                   --buildtype debugoptimized
 ```
 
-The last option `--buildtype debugoptimized` will give us an optimized build with debug symbols.
+The last option `--buildtype debugoptimized` will give us an optimized build with debugging symbols---very useful
+when debugging through `GDB`.
 
 Now type:
 
@@ -219,7 +220,7 @@ meson compile -C build
 This will build the [Panfrost driver stack](https://docs.mesa3d.org/drivers/panfrost.html), which also contains
 PanVK---Vulkan driver for the Arm Mali G610 GPU.
 
-We need to tell the Vulkan apps in our system where to find the driver:
+We need to tell the Vulkan apps in our system where to find the driver. Append the line below to your `~/.bashrc`:
 
 ```bash
 export VK_DRIVER_FILES=$HOME/Desktop/mesa-26.0.1/build/src/panfrost/vulkan/panfrost_devenv_icd.aarch64.json
@@ -239,6 +240,8 @@ Now `vulkaninfo | grep apiVersion` should return:
 ```bash
 apiVersion: 1.4.335 (4211023)
 ```
+
+> Note: Your last three digits may be different, that's fine as long as the version is at least 1.4.
 
 If you are wondering what that 4211023 is, it is the 32-bit unsigned integer representation of the version. Vulkan uses
 a macro called [VK_MAKE_VERSION](https://docs.vulkan.org/refpages/latest/refpages/source/VK_MAKE_VERSION.html) to
@@ -271,7 +274,71 @@ gcc test.c
 4211023
 ```
 
-For image processing, we will write a compute shader, so let's download [Slang](https://shader-slang.org/) and unpack it:
+To actually use Vulkan functions (including extensions), we need to load them. We will use [volk](https://github.com/zeux/volk):
+
+```bash
+git clone --depth=1 https://github.com/zeux/volk
+cd volk
+gcc -O2 -march=native -g -c volk.c -o libvolk.a
+```
+
+The `libvulkan1` package that came pre-installed with Armbian is too old, so we will fetch three additional repositories and
+build the vulkan loader and the validation layers:
+
+```bash
+git clone --depth=1 https://github.com/KhronosGroup/Vulkan-Headers
+git clone --depth=1 https://github.com/KhronosGroup/Vulkan-Loader
+git clone --depth=1 https://github.com/KhronosGroup/Vulkan-ValidationLayers
+```
+
+First, we install the headers:
+
+```bash
+cd Vulkan-Headers
+cmake -S . -B build
+sudo cmake --install build
+```
+
+Then, we build the loader:
+
+```bash
+cd Vulkan-Loader
+cmake -B build -DBUILD_WSI_XCB_SUPPORT=OFF -DBUILD_WSI_XLIB_SUPPORT=OFF -DBUILD_WSI_XLIB_XRANDR_SUPPORT=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo .
+cmake --build build -j8
+```
+
+Then the validation layers:
+
+```bash
+cd Vulkan-ValidationLayers
+cmake -B build -DBUILD_WSI_XCB_SUPPORT=OFF -DBUILD_WSI_XLIB_SUPPORT=OFF -DBUILD_WSI_XLIB_XRANDR_SUPPORT=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo .
+cmake --build build -j8
+```
+
+Note that I didn't install the loader and the validation layers. Instead I will put them inside the `lib` directory of our project.
+
+I will use [EASTL](https://github.com/electronicarts/EASTL)---I prefer it to C++'s standard library because of its emphasis
+on performance and some additional data structures that it provides:
+
+```bash
+git clone --depth=1 https://github.com/electronicarts/EASTL
+```
+
+[EASTL](https://github.com/electronicarts/EASTL) depends on [EABase](https://github.com/electronicarts/EABase), so fetch it too:
+
+```bash
+git clone --depth=1 https://github.com/electronicarts/EABase
+```
+
+Now build EASTL:
+
+```bash
+cd EASTL
+cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo .
+cmake --build build -j8
+```
+
+For image processing, we will write a compute shader, so download [Slang](https://shader-slang.org/) and unpack it:
 
 ```bash
 wget https://github.com/shader-slang/slang/releases/download/v2026.3.1/slang-2026.3.1-linux-aarch64.tar.gz
@@ -282,7 +349,7 @@ tar xvf ../slang-2026.3.1-linux-aarch64.tar.gz
 > Note: Vulkan drivers consume bytecode called [SPIR-V](https://docs.vulkan.org/guide/latest/what_is_spirv.html),
 which means that technically you can use any shading language whose compiler can output SPIR-V bytecode. I chose Slang because I like it :)
 
-For convenience, I create symlinks to slang executables in the `~/Bin` directory:
+For convenience, I created symlinks to slang executables in the `~/Bin` directory:
 
 ```bash
 cd ~/Bin
@@ -317,7 +384,7 @@ sudo apt install gstreamer1.0-plugins-base          \
                  gstreamer1.0-rockchip1
 ```
 
-The most important package is `gstreamer1.0-rockchip1`---it will give us the ability to use Rockchip's hardware facilities for
+The most important package is `gstreamer1.0-rockchip1`---it will allow us to use Rockchip's hardware facilities for
 image and video processing.
 
 Rockchip comes with a [specialized hardware](https://github.com/yanyitech/rga) for 2D image processing, which we can
@@ -326,8 +393,6 @@ interface with using the RGA library:
 ```bash
 sudo apt install librga-dev
 ```
-
-That's it for all the dependencies.
 
 ### The Problem
 
@@ -349,7 +414,7 @@ but you get the idea.
 That's 4 `memcpy()` operations in total! But is it the fastest way of solving this problem? Let's figure it out. First, we will write the implementation,
 then profile it to find out how fast (or slow) `memcpy()` can be.
 
-### Setting Up The Camera
+### Setting up the camera
 
 You can use any camera for this project. I am using a cheap USB camera, which should suffice.
 
@@ -376,12 +441,518 @@ This is a standard Full HD video made of JPEG frames. Luckily for us, the [Rockc
 in BananaPi comes with a hardware block for decoding JPEG images. So we won't need to decode it ourselves in the CPU, which would be slow. The hardware can decode 1080p video
 up to 280 FPS, which is more than enough for us.
 
-### Setting Up The Project
+### Setting up the project
 
 I will use [CMake](https://cmake.org/download/) to generate the build files---which means we need a `CMakeLists.txt`:
 
 ```cmake
-cmake_version_required()
+cmake_minimum_required(VERSION 3.10)
+
+set(CMAKE_CXX_STANDARD              23)
+set(CMAKE_CXX_STANDARD_REQUIRED     True)
+set(CMAKE_CXX_EXTENSIONS            OFF)
+set(CMAKE_C_COMPILER                /usr/bin/gcc-14)
+set(CMAKE_CXX_COMPILER              /usr/bin/g++-14)
+
+project(ZeroCopyVulkan              VERSION 0.1)
+
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY  ${CMAKE_BINARY_DIR}/${CMAKE_CFG_INTDIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY  ${CMAKE_BINARY_DIR}/${CMAKE_CFG_INTDIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  ${CMAKE_BINARY_DIR}/${CMAKE_CFG_INTDIR})
+set(CMAKE_EXPORT_COMPILE_COMMANDS   ON)
+
+set(TP_LIB_DIR                      ${CMAKE_SOURCE_DIR}/lib)
+
+include(${CMAKE_SOURCE_DIR}/compile_flags.cmake)
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GST_APP REQUIRED  gstreamer-1.0
+                                    gstreamer-app-1.0
+                                    gstreamer-allocators-1.0
+                                    glib-2.0)
+
+add_executable("${PROJECT_NAME}"
+    ${CMAKE_SOURCE_DIR}/src/memcpy.cpp
+    ${CMAKE_SOURCE_DIR}/src/zero-copy.cpp
+    ${CMAKE_SOURCE_DIR}/src/memory.cpp
+    ${CMAKE_SOURCE_DIR}/src/main.cpp
+)
+
+target_link_directories("${PROJECT_NAME}" PRIVATE ${TP_LIB_DIR})
+
+target_compile_options("${PROJECT_NAME}" PRIVATE ${COMMON_COMPILER_FLAGS})
+target_compile_options("${PROJECT_NAME}" PRIVATE
+    $<$<CONFIG:Debug>:${DEBUG_COMPILER_FLAGS}>
+    $<$<CONFIG:Release>:${RELEASE_COMPILER_FLAGS}>
+)
+
+target_link_options("${PROJECT_NAME}" PRIVATE ${COMMON_LINKER_FLAGS})
+target_link_options("${PROJECT_NAME}" PRIVATE
+    $<$<CONFIG:Debug>:${DEBUG_LINKER_FLAGS}>
+    $<$<CONFIG:Release>:${RELEASE_LINKER_FLAGS}>
+)
+
+target_include_directories("${PROJECT_NAME}" SYSTEM PUBLIC include)
+target_include_directories("${PROJECT_NAME}" SYSTEM PUBLIC ${GST_APP_INCLUDE_DIRS})
+
+find_library(RGA NAMES rga PATHS /usr/lib/aarch64-linux-gnu REQUIRED)
+target_link_libraries("${PROJECT_NAME}" PRIVATE ${RGA})
+
+function(find_and_link_library LIB_NAME)
+    string(TOUPPER ${LIB_NAME} LIB_VAR)
+    find_library(${LIB_VAR} NAMES ${LIB_NAME} PATHS ${TP_LIB_DIR} NO_DEFAULT_PATH)
+    if(${LIB_VAR})
+        target_link_libraries("${PROJECT_NAME}" PRIVATE ${${LIB_VAR}})
+    else()
+        message(FATAL_ERROR "Could not find ${LIB_NAME}")
+    endif()
+endfunction()
+
+find_and_link_library(EASTL)
+find_and_link_library(volk)
 ```
+
+> Note: If you are wondering what that `include(${CMAKE_SOURCE_DIR}/compile_flags.cmake)` is,
+I have basically put the compiler and linker flags in a different cmake file, so that we don't
+clutter the main build script.
+
+The build script above does a few things:
+
+- It sets the C++ standard to 23
+- Disables compiler extensions
+- Sets the compiler to a version that supports C++ version 23 (in our case, `g++-14`)
+- Makes sure that CMake doesn't clutter the root directory of our project
+- Sets the library directory to `lib`
+- Includes compiler and linker flags from a separate file (to be shown later)
+- Searches for GStreamer libraries in the system
+- Specifies the source code files of the project
+- Sets different compiler and linker flags depending on whether we are building for `debug` or `release`
+- Sets the appropriate header files as `SYSTEM` (this means that our custom compiler flags won't apply to them---later you will see why we need it)
+- Finds the `RGA` library in the system and links to it
+- Defines a function called `find_and_link_library` used for finding and linking libraries in the `lib` directory
+
+The script could have been writter better, sure, namely the code for finding the C++23-capable compiler can be
+refactored to something that can work across systems, but for our purposes setting the compiler path to `/usr/bin/g++-14` is good enough.
+
+Below is the `compile_flags.cmake` (despite its name, it also contains the linker flags):
+
+```cmake
+set(COMMON_COMPILER_FLAGS
+    "-DEASTL_STRING_EXPLICIT"            # make string ctor explicit
+    "-DEASTL_EXCEPTIONS_ENABLED=0"       # disable exceptions
+
+    "-save-temps"
+    "-march=native"
+
+    "-g"
+    "-Wall"
+    "-Wextra"
+    "-Werror"
+    "-Wformat"
+    "-Wformat=2"
+    "-Wformat-security"
+    "-Whardened"
+    "-Wconversion"
+    "-Wsign-conversion"
+    "-Wfloat-equal"
+    "-Wimplicit-fallthrough"
+    "-Wbidi-chars=any"
+    "-Wundef"
+    "-Wnull-dereference"
+    "-Wunused-variable"
+    "-Wshadow"
+    "-Wpointer-arith"
+    "-Wwrite-strings" 
+    "-Wunreachable-code"
+    "-Winit-self"
+    "-Wnon-virtual-dtor"
+    "-Wdeprecated"
+    "-Wold-style-cast"
+    "-Wsuggest-override"
+    "-Wmisleading-indentation"
+    "-Wparentheses"
+    "-Wlogical-op"
+    "-Wattributes"
+    "-Wuseless-cast"
+    "-Wcast-qual"
+    "-Wcast-align"
+    "-Wmissing-include-dirs"
+    "-Wredundant-decls"
+    "-D_GLIBCXX_ASSERTIONS"
+    "-U_FORTIFY_SOURCE"
+    "-D_FORTIFY_SOURCE=3"
+    "-fstrict-flex-arrays=3"
+    "-fstack-clash-protection"
+    "-fstack-protector-strong"
+    "-mbranch-protection=standard"
+    "-Wl,-z,nodlopen"
+    "-Wl,-z,noexecstack"
+    "-Wl,-z,relro"
+    "-Wl,-z,now"
+    "-Wl,--as-needed"
+    "-Wl,--no-copy-dt-needed-entries"
+    "-fno-delete-null-pointer-checks"
+    "-fno-strict-overflow"
+    "-fno-strict-aliasing"
+    "-ftrivial-auto-var-init=zero"
+    "-fno-exceptions"
+    "-fno-rtti"
+)
+
+set(DEBUG_COMPILER_FLAGS
+    "-Og"
+    "-D_DEBUG"
+    "-fverbose-asm"
+)
+
+set(RELEASE_COMPILER_FLAGS
+    "-O2"
+    "-D_RELEASE"
+)
+
+set(COMMON_LINKER_FLAGS
+    "-Wl,-z,nodlopen"
+    "-Wl,-z,noexecstack"
+    "-Wl,-z,relro"
+    "-Wl,-z,now"
+    "-Wl,--as-needed"
+    "-Wl,--no-copy-dt-needed-entries"
+)
+
+set(DEBUG_LINKER_FLAGS
+)
+
+set(RELEASE_LINKER_FLAGS
+    "-flto"
+)
+```
+
+Embedded software is often pilloried for security issues, so I have decided to enable
+[OpenSSF's recommendations](https://best.openssf.org/Compiler-Hardening-Guides/Compiler-Options-Hardening-Guide-for-C-and-C++.html)
+for compiler flags designed to improve security.
+
+There are a few additional notes about `compile_flags.cmake`:
+
+- EASTL by default implicitly converts `char*` to a `string` object, causing a heap allocation where none was necessary.
+We can turn this off by defining `EASTL_STRING_EXPLICIT`. You can read more about it [here](https://github.com/electronicarts/EASTL/blob/master/doc/Gotchas.md#char-converts-to-string-silently)
+- We are disabling exceptions and RTTI (often the case for embedded projects), since they may incur performance penalties that we won't tolerate. We also need to tell EASTL about this,
+which is what `EASTL_EXCEPTIONS_ENABLED=0` does. You can read about arguments for and against exceptions [here](http://shanekirk.com/2015/06/c-exceptions-the-good-the-bad-and-the-ugly/). If you do want
+to use exceptions, then you need to remove the lines containing `EASTL_EXCEPTIONS_ENABLED=0` and `-fno-exceptions`
+- Debugging symbols are present in release builds too. We can always remove them using the `strip` command
+- No [RTTI](https://pvs-studio.com/en/blog/posts/cpp/0998/), so no `dynamic_cast`
+
+The project structure is as follows:
+
+```bash
+./
+├── include/
+│   ├── EABase/
+│   ├── EASTL/
+│   └── volk/
+├── lib/
+│   ├── libEASTL.a
+│   ├── libVkLayer_khronos_validation.so*
+│   ├── libvolk.a
+│   ├── libvulkan.so*
+├── src/
+│   ├── ivalid.hpp
+│   ├── main.cpp
+│   ├── memcpy.cpp
+│   ├── memcpy.hpp
+│   ├── memory.cpp
+│   ├── util.hpp
+│   ├── zero-copy.cpp
+│   └── zero-copy.hpp
+├── CMakeLists.txt
+├── compile_flags.cmake
+└── compile_flags.txt
+```
+
+EASTL expects custom `new` and `new[]` functions with specific parameters. So `memory.cpp` defines them:
+
+```cpp
+// memory.cpp
+
+#include <cstddef>
+#include <cstdlib>
+
+///////////////////////////////////////////////////////////////////////////
+void* operator new[](size_t size,
+                     [[maybe_unused]] const char* pName,
+                     [[maybe_unused]] int flags,
+                     [[maybe_unused]] unsigned debugFlags,
+                     [[maybe_unused]] const char* file,
+                     [[maybe_unused]] int line)
+{
+    return malloc(size);
+}
+
+///////////////////////////////////////////////////////////////////////////
+void* operator new[](size_t size,
+                     size_t alignment,
+                     [[maybe_unused]] size_t offset,
+                     [[maybe_unused]] const char* pName,
+                     [[maybe_unused]] int flags,
+                     [[maybe_unused]] unsigned debugFlags,
+                     [[maybe_unused]] const char* file,
+                     [[maybe_unused]] int line)
+{
+    return aligned_alloc(alignment, size);
+}
+
+///////////////////////////////////////////////////////////////////////////
+void* operator new(size_t size,
+                   [[maybe_unused]] const char* name,
+                   [[maybe_unused]] int flags,
+                   [[maybe_unused]] unsigned debugFlags,
+                   [[maybe_unused]] const char* file,
+                   [[maybe_unused]] int line)
+{
+    return malloc(size);
+}
+```
+
+`compile_flags.txt` is a simple text file that contains the compiler flags passed to `clangd` by neovim.
+
+`memcpy.cpp` will be our first attempt at utilizing Vulkan for image processing, using `memcpy()` calls as noted previously.
+Then, we are going to write a zero-copy version in `zero-copy.cpp`. We will compare the performance of `memcpy.cpp` and
+`zero-copy.cpp` to see which one is more efficient. There is also `main.cpp`, which will accept a command-line flag to switch
+between these two implementations: `./main -memcpy` will invoke the `memcpy()`-based pipeline, while `./main -zero-copy` will
+run the **zero-copy** pipeline. Note that you can download this project from the [Github repository](https://github.com/0xdeadf1sh/ZeroCopyVulkan)
+like this:
+
+```bash
+git clone https://github.com/0xdeadf1sh/ZeroCopyVulkan
+```
+
+Now that the project is set up, we can start writing some code.
+
+### Initial scaffolding
+
+Open `memcpy.hpp` and add the following lines:
+
+```cpp
+// memcpy.hpp
+
+#pragma once
+
+#include <volk/volk.h>
+
+namespace zcv::memcpy
+{
+    ///////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////// ENTRY //////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
+    int main();
+}
+```
+
+Open `memcpy.cpp` and add the following:
+
+```cpp
+// memcpy.cpp
+
+#include "memcpy.hpp"
+
+#include <cstdlib>
+
+namespace zcv::memcpy
+{
+    ///////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////// ENTRY //////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
+    int main()
+    {
+        return EXIT_SUCCESS;
+    }
+}
+```
+
+Now do the same for `zero-copy.hpp` and `zero-copy.cpp`:
+
+```cpp
+// zero-copy.hpp
+
+#pragma once
+
+#include <volk/volk.h>
+
+namespace zcv::zerocopy
+{
+    ///////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////// ENTRY //////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
+    int main();
+}
+```
+
+```cpp
+// zero-copy.cpp
+
+#include "zero-copy.hpp"
+
+#include <cstdlib>
+
+namespace zcv::zerocopy
+{
+    ///////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////// ENTRY //////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
+    int main()
+    {
+        return EXIT_SUCCESS;
+    }
+}
+```
+
+We will put the memcpy and zero-copy implementations in their own respective namespaces, so that their
+symbols don't conflict with each other. Both have a `main()` function that acts as an "entry-point".
+
+Now write the code for `main.cpp`:
+
+```cpp
+// main.cpp
+
+#include "memcpy.hpp"
+#include "zero-copy.hpp"
+
+#include <print>
+#include <cstdlib>
+#include <cstring>
+
+///////////////////////////////////////////////////////////////////////////
+////////////////////////////////// ENTRY //////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+int main(int argc, char** argv)
+{
+    if (argc < 2) {
+        std::println("Usage: '{} -memcpy' OR '{} -zero-copy'", argv[0],
+                                                               argv[0]);
+        return EXIT_SUCCESS;
+    }
+
+    if (!strncmp(argv[1], "-memcpy", 7)) {
+        return zcv::memcpy::main();
+    }
+    else if (!strncmp(argv[1], "-zero-copy", 10)) {
+        return zcv::zerocopy::main();
+    }
+
+    std::println(stderr, "{}: ERROR: '{}' is an unknown option!", argv[0],
+                                                                  argv[1]);
+
+    return EXIT_FAILURE;
+}
+```
+
+Our `main.cpp` is simple---we check whether the user has passed `-memcpy` or `-zero-copy`,
+and then initiate the appropriate pipeline. Otherwise, we print an error and exit. Compile and run the
+project with:
+
+```bash
+cmake -B build -DCMAKE_BUILD_TYPE=Debug .
+cmake --build build --parallel
+```
+
+For release mode, type the following:
+
+```bash
+cmake -B build -DCMAKE_BUILD_TYPE=Release .
+cmake --build build --parallel
+```
+
+> Note: Our project doesn't need to pass `RelWithDebInfo` to `CMAKE_BUILD_TYPE`, because we already pass the `-g` option
+to the compiler in `compile_flags.cmake`.
+
+> Another note: If you don't want to lose your debug build when generating a release build, you can put these
+executables in different directories like this:
+`cmake -B build/debug -DCMAKE_BUILD_TYPE=Debug` (for debug builds), and,
+`cmake -B build/release -DCMAKE_BUILD_TYPE=Release` (for release builds)
+
+This will produce a binary called `ZeroCopyVulkan` in the `build` directory.
+
+Because we have disabled exceptions, we will need another mechanism to percolate the errors from the implementations
+to the `main` routine. A simple way to do that is to define an interface called `IValid` that by default represents
+a "valid" object, but can be made "invalid" by the class that implements it. Here's its source code:
+
+```cpp
+// ivalid.hpp
+
+#pragma once
+
+namespace zcv
+{
+    ///////////////////////////////////////////////////////////////////////////
+    class IValid
+    {
+    private:
+        bool m_isValid          { true                  };
+
+    protected:
+        void invalidate()       { m_isValid = false;    }
+
+    public:
+        bool isValid() const    { return m_isValid;     }
+
+        virtual ~IValid()       {}
+    };
+
+    ///////////////////////////////////////////////////////////////////////////
+    #define VALIDATE_OBJECT(OBJECT)                                         \
+        if (!(OBJECT).isValid()) {                                          \
+            std::println(stderr, #OBJECT " is not valid at file "           \
+                                 "'{}', line '{}'", __FILE__, __LINE__);    \
+            return EXIT_FAILURE;                                            \
+        }
+
+    ///////////////////////////////////////////////////////////////////////////
+    #define VALIDATE_FUNCTION(FUNCTION_CALL)                                \
+        if (EXIT_SUCCESS != FUNCTION_CALL) {                                \
+            std::println(stderr, #FUNCTION_CALL " is not valid at file "    \
+                                 "'{}', line '{}'", __FILE__, __LINE__);    \
+            invalidate();                                                   \
+            return EXIT_FAILURE;                                            \
+        }
+
+    ///////////////////////////////////////////////////////////////////////////
+    #define VALIDATE_FUNCTION_CTOR(FUNCTION_CALL)                           \
+        if (EXIT_SUCCESS != FUNCTION_CALL) {                                \
+            std::println(stderr, #FUNCTION_CALL " is not valid at file "    \
+                                 "'{}', line '{}'", __FILE__, __LINE__);    \
+            invalidate();                                                   \
+            return;                                                         \
+        }
+}
+```
+
+The macro `VALIDATE_OBJECT` will be used to check whether the given `IValid` object
+is in a valid state. It will print an error message and return immediately if it is not.
+
+The macros `VALIDATE_FUNCTION` and `VALIDATE_FUNCTION_CTOR` will be placed inside the methods
+of our `IValid` classes. The `_CTOR` variant is for the constructor, since we can't return
+a value from there.
+
+We will also create `util.hpp` to store some commonly used functions and macros:
+
+```cpp
+// util.hpp
+
+#pragma once
+
+///////////////////////////////////////////////////////////////////////////
+#define BUFFER_LEN(BUFFER) (sizeof(BUFFER) / sizeof((BUFFER)[0]))
+
+namespace zcv
+{
+
+}
+```
+
+I put `BUFFER_LEN` outside the namespace to make us remember that the preprocessor
+doesn't care about namespaces.
+
+### Initializing Vulkan
+
+
 
 ## memcpy() is fast?
