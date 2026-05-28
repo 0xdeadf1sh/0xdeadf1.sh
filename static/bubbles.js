@@ -4,7 +4,7 @@
     const BODY_MAX_WIDTH = 780;
     const MIN_GUTTER = 24;
     const BUBBLES_PER_PX = 1 / 220;
-    const MIN_BUBBLES_PER_SIDE = 10;
+    const MIN_BUBBLES_PER_SIDE = 12;
     const MAX_BUBBLES_PER_SIDE = 80;
 
     function rand(min, max) {
@@ -45,17 +45,34 @@
         return b;
     }
 
+    function ensureContainer() {
+        let box = document.getElementById('bubble-box');
+        if (box && box.parentNode !== document.documentElement) {
+            document.documentElement.appendChild(box);
+        } else if (!box) {
+            box = document.createElement('div');
+            box.id = 'bubble-box';
+            box.setAttribute('aria-hidden', 'true');
+            document.documentElement.appendChild(box);
+        }
+        return box;
+    }
+
     function populate() {
-        const box = document.getElementById('bubble-box');
-        if (!box) return;
+        const box = ensureContainer();
 
         box.innerHTML = '';
 
         const gutter = gutterWidth();
         if (gutter < MIN_GUTTER) return;
 
-        const boxHeight = box.offsetHeight;
-        if (boxHeight < 1) return;
+        // body.scrollHeight (not documentElement.scrollHeight) — the world
+        // boxes are siblings of body, so this is independent of them and
+        // doesn't grow as we set the box height.
+        const docHeight = document.body.scrollHeight;
+        if (docHeight < 1) return;
+        box.style.height = docHeight + 'px';
+        const boxHeight = docHeight;
 
         const count = Math.min(
             MAX_BUBBLES_PER_SIDE,
