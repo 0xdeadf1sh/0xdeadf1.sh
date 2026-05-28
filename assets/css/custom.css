@@ -14,10 +14,47 @@ body {
     border-radius: 20px;
     margin-top: 50px;
     margin-bottom: 50px;
+    position: relative;
 }
 
-.bubble img {
-    padding: 20px;
+#bubble-box {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100vw;
+    pointer-events: none;
+}
+
+.bubble {
+    position: absolute;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at 32% 28%,
+            rgba(255, 255, 255, 0.85),
+            rgba(220, 255, 240, 0.18) 38%,
+            rgba(170, 230, 255, 0.07) 65%,
+            transparent 100%);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    box-shadow:
+        inset 0 -2px 4px rgba(255, 255, 255, 0.20),
+        0 0 6px rgba(170, 230, 255, 0.15);
+    opacity: 0;
+    will-change: transform, opacity;
+    animation: bubble-rise linear infinite;
+    animation-duration: var(--dur, 24s);
+    animation-delay: var(--delay, 0s);
+}
+
+@keyframes bubble-rise {
+    0%   { transform: translate3d(0, 0, 0) scale(0.75); opacity: 0; }
+    8%   { opacity: var(--alpha, 0.6); }
+    25%  { transform: translate3d(var(--wobble, 12px), calc(var(--dist, -800px) * 0.25), 0); }
+    50%  { transform: translate3d(calc(var(--wobble, 12px) * -1), calc(var(--dist, -800px) * 0.50), 0); }
+    75%  { transform: translate3d(var(--wobble, 12px), calc(var(--dist, -800px) * 0.75), 0); }
+    92%  { opacity: var(--alpha, 0.6); }
+    100% { transform: translate3d(0, var(--dist, -800px), 0) scale(1.0); opacity: 0; }
 }
 
 pre, code {
