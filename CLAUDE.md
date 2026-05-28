@@ -27,8 +27,9 @@ git submodule update --init --recursive
 
 CI pins `HUGO_VERSION=0.154.4` (extended) and `DART_SASS_VERSION=1.97.2`. The
 extended build is required (Sass pipeline). The built site lands in `public/`,
-which is *committed* to the repo — leave it alone unless you mean to ship a
-build artefact; in practice the GitHub Actions workflow regenerates it.
+which is `.gitignore`'d — the GitHub Actions workflow does a fresh build on
+every push and uploads that as the Pages artefact, so the local `public/` is
+only useful for previewing the production build.
 
 ## Architecture
 
