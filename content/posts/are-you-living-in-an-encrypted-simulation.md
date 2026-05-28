@@ -479,6 +479,6 @@ But what about Finn? Let's see how he is doing:
 
 Hmm, he doesn't look too good. Unfortunately gradient descent didn't help him. But why?
 
-### The Enigma Machine
+### More Spikes
 
 ## The Matrix

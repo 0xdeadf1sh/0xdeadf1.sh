@@ -1,14 +1,35 @@
+html {
+    background-image: url('/fish_background.gif');
+    background-repeat: no-repeat;
+    background-position: bottom center;
+    background-size: 100% auto;
+    background-color: #255ca7;
+}
+
+body {
+    background-color: rgb(0, 0, 0, 0.0);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid lime;
+    border-radius: 20px;
+    margin-top: 50px;
+    margin-bottom: 50px;
+}
+
 .bubble img {
     padding: 20px;
 }
 
 pre, code {
     font-size: 0.8em;
+    color: lime;
 }
 
 img[src$='#center'] {
   display: block;
   margin: 1.0rem auto;
+  max-height: 600px;
+  width: auto;
 }
 
 figure {
