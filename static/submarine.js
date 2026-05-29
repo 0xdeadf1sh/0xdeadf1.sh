@@ -35,7 +35,7 @@
             '<path d="M 208 48 L 213 34 L 220 48 Z" fill="url(#sub-hull-grad)" stroke="#1c2230" stroke-width="1.5"/>' +
             // propeller shaft + blades
             '<line x1="225" y1="65" x2="234" y2="65" stroke="#4a5258" stroke-width="3" stroke-linecap="round"/>' +
-            '<g fill="#4a5258" stroke="#1c2230" stroke-width="1">' +
+            '<g class="sub-prop" fill="#4a5258" stroke="#1c2230" stroke-width="1">' +
                 '<ellipse cx="234" cy="65" rx="2" ry="4"/>' +
                 '<ellipse cx="234" cy="56" rx="2.5" ry="7" opacity="0.85"/>' +
                 '<ellipse cx="234" cy="74" rx="2.5" ry="7" opacity="0.85"/>' +

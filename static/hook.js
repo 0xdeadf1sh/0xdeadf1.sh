@@ -35,6 +35,12 @@
     function spawnHook() {
         const box = ensureContainer();
 
+        // Span the full document and anchor the hook to the current scroll
+        // position so it drifts with the page like the rest of the world,
+        // instead of staying glued to the viewport.
+        box.style.height = document.body.scrollHeight + 'px';
+        const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+
         const x = rand(80, Math.max(160, window.innerWidth - 80));
         const depth = rand(window.innerHeight * 0.25, window.innerHeight * 0.62);
         const descendDur = rand(2.8, 4.2) * 1000;
@@ -44,6 +50,7 @@
         const wrap = document.createElement('div');
         wrap.className = 'hook-wrap';
         wrap.style.left = x.toFixed(0) + 'px';
+        wrap.style.top = scrollY.toFixed(0) + 'px';
         wrap.innerHTML =
             '<div class="hook">' +
                 '<div class="hook-line"></div>' +

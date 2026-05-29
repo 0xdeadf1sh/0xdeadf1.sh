@@ -1,14 +1,10 @@
 (function () {
     'use strict';
 
-    const KEY = '0xdeadf1sh-toolbar-v3';
-
     const TOGGLES = [
-        { key: 'fish',    label: 'fish & sub',   cls: 'no-fish' },
-        { key: 'bubbles', label: 'bubbles',      cls: 'no-bubbles' },
-        { key: 'hook',    label: 'hook',         cls: 'no-hook' },
-        { key: 'bg',      label: 'animated bg',  cls: 'no-bg-animation' },
-        { key: 'bluebg',  label: 'blue bg',      cls: 'no-blue-bg' }
+        { key: 'fish',    label: 'fish & sub', cls: 'no-fish' },
+        { key: 'bubbles', label: 'bubbles',    cls: 'no-bubbles' },
+        { key: 'hook',    label: 'hook',       cls: 'no-hook' }
     ];
 
     function isPostPage() {
@@ -16,56 +12,23 @@
         return m !== null && m[1] !== 'page';
     }
 
-    const POST_OFF_KEYS = new Set(['fish', 'bubbles', 'hook', 'bg', 'bluebg']);
+    const POST_OFF_KEYS = new Set(['fish', 'bubbles', 'hook']);
 
+    // No persistence: every load starts from page-type-aware defaults.
+    // Post pages default the world off; everywhere else it's on. The blue
+    // background and animated gif are always on and have no toggle.
     function defaultFor(key) {
         if (key === 'collapsed') return true;
         if (isPostPage() && POST_OFF_KEYS.has(key)) return false;
         return true;
     }
 
-    // Storage holds explicit user choices only. Unset keys fall back to
-    // page-type-aware defaults. This way: post defaults can be off while
-    // home defaults stay on, and a user who explicitly enables fish on a
-    // post keeps fish on across page types.
-    let storedValues = {};
-    let explicitKeys = new Set();
-
-    function loadStorage() {
-        try {
-            const raw = JSON.parse(localStorage.getItem(KEY) || '{}') || {};
-            storedValues = raw.values || {};
-            explicitKeys = new Set(raw.explicit || []);
-        } catch (e) {
-            storedValues = {};
-            explicitKeys = new Set();
-        }
-    }
-
-    function saveStorage() {
-        const values = {};
-        explicitKeys.forEach(function (k) { values[k] = storedValues[k]; });
-        try {
-            localStorage.setItem(KEY, JSON.stringify({
-                values: values,
-                explicit: Array.from(explicitKeys)
-            }));
-        } catch (e) {}
-    }
-
-    function setExplicit(key, value) {
-        storedValues[key] = value;
-        explicitKeys.add(key);
-        saveStorage();
-    }
-
     function loadState() {
-        loadStorage();
         const state = {};
         TOGGLES.forEach(function (t) {
-            state[t.key] = explicitKeys.has(t.key) ? !!storedValues[t.key] : defaultFor(t.key);
+            state[t.key] = defaultFor(t.key);
         });
-        state.collapsed = explicitKeys.has('collapsed') ? !!storedValues.collapsed : defaultFor('collapsed');
+        state.collapsed = defaultFor('collapsed');
         return state;
     }
 
@@ -121,7 +84,6 @@
             const next = !allOn(state);
             TOGGLES.forEach(function (t) {
                 state[t.key] = next;
-                setExplicit(t.key, next);
             });
             refreshUI();
             applyToggles(state);
@@ -131,7 +93,6 @@
             btn.addEventListener('click', function () {
                 const t = TOGGLES[i];
                 state[t.key] = !state[t.key];
-                setExplicit(t.key, state[t.key]);
                 refreshUI();
                 applyToggles(state);
             });
@@ -155,7 +116,6 @@
 
         handle.addEventListener('click', function () {
             state.collapsed = !state.collapsed;
-            setExplicit('collapsed', state.collapsed);
             bar.classList.toggle('collapsed', state.collapsed);
             handle.setAttribute('aria-expanded', state.collapsed ? 'false' : 'true');
         });
@@ -166,9 +126,11 @@
         document.documentElement.appendChild(bar);
     }
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', build);
-    } else {
-        build();
+    if (!isPostPage()) {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', build);
+        } else {
+            build();
+        }
     }
 })();

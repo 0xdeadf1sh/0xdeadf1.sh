@@ -23,7 +23,7 @@
                 '<svg viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg">' +
                 '<g fill="currentColor">' +
                 '<ellipse cx="32" cy="15" rx="22" ry="10"/>' +
-                '<path d="M 12 15 L 0 6 L 4 15 L 0 24 Z"/>' +
+                '<g class="fish-tail"><path d="M 12 15 L 0 6 L 4 15 L 0 24 Z"/></g>' +
                 '<path d="M 30 5 L 35 0 L 38 6 Z" opacity="0.85"/>' +
                 '</g>' +
                 '<circle cx="44" cy="12" r="2" fill="white"/>' +
@@ -39,7 +39,7 @@
                 '<svg viewBox="0 0 70 24" xmlns="http://www.w3.org/2000/svg">' +
                 '<g fill="currentColor">' +
                 '<ellipse cx="35" cy="12" rx="28" ry="5"/>' +
-                '<path d="M 7 12 L -2 4 L 2 12 L -2 20 Z"/>' +
+                '<g class="fish-tail"><path d="M 7 12 L -2 4 L 2 12 L -2 20 Z"/></g>' +
                 '<path d="M 28 7 L 34 2 L 40 7 Z" opacity="0.85"/>' +
                 '<path d="M 28 17 L 32 22 L 38 17 Z" opacity="0.8"/>' +
                 '</g>' +
@@ -56,7 +56,7 @@
                 '<svg viewBox="0 0 60 42" xmlns="http://www.w3.org/2000/svg">' +
                 '<g fill="currentColor">' +
                 '<ellipse cx="30" cy="21" rx="18" ry="16"/>' +
-                '<path d="M 12 21 L 2 12 L 6 21 L 2 30 Z"/>' +
+                '<g class="fish-tail"><path d="M 12 21 L 2 12 L 6 21 L 2 30 Z"/></g>' +
                 '<path d="M 26 5 L 32 0 L 38 5 Z" opacity="0.85"/>' +
                 '<path d="M 32 37 L 36 42 L 42 37 Z" opacity="0.75"/>' +
                 '</g>' +
@@ -77,7 +77,7 @@
                 '<svg viewBox="0 0 60 56" xmlns="http://www.w3.org/2000/svg">' +
                 '<g fill="currentColor">' +
                 '<path d="M 32 14 L 50 28 L 32 42 L 14 28 Z"/>' +
-                '<path d="M 14 28 L 4 18 L 8 28 L 4 38 Z"/>' +
+                '<g class="fish-tail"><path d="M 14 28 L 4 18 L 8 28 L 4 38 Z"/></g>' +
                 // tall top fin
                 '<path d="M 24 16 L 30 2 L 38 16 Z" opacity="0.88"/>' +
                 // tall bottom fin
@@ -99,7 +99,7 @@
                 '<g fill="currentColor">' +
                 '<ellipse cx="56" cy="19" rx="17" ry="8"/>' +
                 // sweeping flowy tail
-                '<path d="M 39 19 Q 26 9 4 4 Q 12 19 4 34 Q 26 29 39 19 Z" opacity="0.88"/>' +
+                '<g class="fish-tail"><path d="M 39 19 Q 26 9 4 4 Q 12 19 4 34 Q 26 29 39 19 Z" opacity="0.88"/></g>' +
                 // top fin sweeping back
                 '<path d="M 50 11 Q 48 1 38 4 Q 46 8 50 11 Z" opacity="0.85"/>' +
                 // bottom fin sweeping back
@@ -149,6 +149,7 @@
         fish.style.setProperty('--delay', '-' + rand(0, dur).toFixed(1) + 's');
 
         fish.style.setProperty('--wobble', rand(6, 14).toFixed(1) + 'px');
+        fish.style.setProperty('--wag', rand(0.4, 0.85).toFixed(2) + 's');
 
         fish.style.color = pick(COLORS);
 

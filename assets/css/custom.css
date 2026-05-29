@@ -1,9 +1,41 @@
+/* Monospace body for a terminal/hacker look, reusing the vendored
+   Monaspace (Argon) already loaded for code — readable, no new fonts. */
+:root {
+    --font-body: "Monaspace", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
 html {
+    background-color: #255ca7;
+}
+
+/* The gif rides in a fixed pseudo-element rather than as a fixed-attachment
+   root background: Chromium paints fixed-attachment root backgrounds on the
+   canvas layer, which backdrop-filter doesn't sample, so the body blur would
+   skip it. A real fixed element is captured by the blur. */
+html::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
     background-image: url('/fish_background.gif');
     background-repeat: no-repeat;
-    background-position: bottom center;
+    background-position: center;
+    /* The gif is portrait (500x620): full-width scaling makes it taller than
+       the viewport on wide screens, so only a horizontal slice shows. Center
+       the slice (rather than bottom-anchoring) to reveal more of the top. */
     background-size: 100% auto;
-    background-color: #255ca7;
+}
+
+/* Post pages drop the gif and go flat black. .single-content is rendered only
+   by single.html (posts), so this matches posts and nothing else; if :has() is
+   unsupported the home look (blue + gif) simply stays — a harmless fallback. */
+html:has(.single-content) {
+    background-color: black;
+}
+
+html:has(.single-content)::before {
+    background-image: none;
 }
 
 body {
@@ -51,8 +83,31 @@ body {
     transform: scaleX(-1);
 }
 
+/* Tail wag: pivot the tail about where it meets the body (its right edge).
+   transform-box: fill-box makes the origin relative to the tail's own bbox,
+   so the same rule works for every variant regardless of svg viewBox. */
+.fish-tail {
+    transform-box: fill-box;
+    transform-origin: right center;
+    animation: fish-tail-wag var(--wag, 0.6s) ease-in-out infinite;
+}
+
+@keyframes fish-tail-wag {
+    0%, 100% { transform: rotate(-11deg); }
+    50%      { transform: rotate(11deg); }
+}
+
+#hook-box {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
 .hook-wrap {
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
     pointer-events: none;
@@ -126,6 +181,9 @@ body {
     width: 100%;
     height: 100%;
     display: block;
+    /* The spinning propeller sweeps past the right edge of the viewBox; let it
+       draw outside instead of being clipped by the svg's default overflow. */
+    overflow: visible;
     filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.45));
 }
 
@@ -136,6 +194,17 @@ body {
 @keyframes sub-bob {
     0%, 100% { transform: translateY(0); }
     50%      { transform: translateY(7px); }
+}
+
+/* Spin the propeller blades about their hub (bbox centre ≈ the shaft end). */
+.sub-prop {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: sub-prop-spin 0.45s linear infinite;
+}
+
+@keyframes sub-prop-spin {
+    to { transform: rotate(360deg); }
 }
 
 .world-toolbar {
@@ -271,21 +340,6 @@ html.no-hook #hook-box {
     display: none;
 }
 
-html.no-bg-animation {
-    background-image: none;
-}
-
-html.no-blue-bg {
-    background-color: black;
-}
-
-/* When the user has every toggle off, drop the body blur too —
-   nothing meaningful to blur, and backdrop-filter is expensive. */
-html.no-fish.no-bubbles.no-hook.no-bg-animation.no-blue-bg body {
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-}
-
 /* On mobile / narrow viewports, the world layer crowds content and
    backdrop-filter is too costly. Hide everything and skip the blur. */
 @media (max-width: 820px) {
@@ -303,6 +357,9 @@ html.no-fish.no-bubbles.no-hook.no-bg-animation.no-blue-bg body {
     #hook-box,
     .world-toolbar {
         display: none;
+    }
+    html::before {
+        background-image: none;
     }
 }
 
@@ -347,7 +404,24 @@ html.no-fish.no-bubbles.no-hook.no-bg-animation.no-blue-bg body {
 
 pre, code {
     font-size: 0.8em;
-    color: lime;
+}
+
+/* Anthropic-inspired code blocks, high-contrast on a near-black warm
+   ground; token colors live in syntax-highlighting.css. Borders stay
+   lime (from --code-border). */
+pre {
+    background-color: #110e0c;
+}
+
+:not(pre) > code {
+    color: #ff8c5e;
+    background-color: #110e0c;
+}
+
+/* Home intro only (the PGP key block): show the page through it, no fill.
+   .intro exists solely on the home page. Lime border is kept. */
+.intro pre {
+    background-color: transparent;
 }
 
 img[src$='#center'] {
