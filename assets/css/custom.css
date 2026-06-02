@@ -38,6 +38,16 @@ html:has(.single-content)::before {
     background-image: none;
 }
 
+/* "background" toggle in the world toolbar (home/list pages): swap the blue
+   animated-gif backdrop for the same flat black used on post pages. */
+html.no-bg {
+    background-color: black;
+}
+
+html.no-bg::before {
+    background-image: none;
+}
+
 body {
     font-size: 15px;
     background-color: rgb(0, 0, 0, 0.0);
@@ -344,6 +354,9 @@ html.no-hook #hook-box {
 /* On mobile / narrow viewports, the world layer crowds content and
    backdrop-filter is too costly. Hide everything and skip the blur. */
 @media (max-width: 820px) {
+    html {
+        background-color: black;
+    }
     body {
         backdrop-filter: none;
         -webkit-backdrop-filter: none;

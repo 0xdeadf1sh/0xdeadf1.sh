@@ -4,7 +4,8 @@
     const TOGGLES = [
         { key: 'fish',    label: 'fish & sub', cls: 'no-fish' },
         { key: 'bubbles', label: 'bubbles',    cls: 'no-bubbles' },
-        { key: 'hook',    label: 'hook',       cls: 'no-hook' }
+        { key: 'hook',    label: 'hook',       cls: 'no-hook' },
+        { key: 'bg',      label: 'background', cls: 'no-bg' }
     ];
 
     function isPostPage() {
@@ -15,8 +16,9 @@
     const POST_OFF_KEYS = new Set(['fish', 'bubbles', 'hook']);
 
     // No persistence: every load starts from page-type-aware defaults.
-    // Post pages default the world off; everywhere else it's on. The blue
-    // background and animated gif are always on and have no toggle.
+    // Post pages default the world off; everywhere else it's on. The
+    // 'background' toggle swaps the blue animated-gif backdrop for the
+    // flat black used on post pages.
     function defaultFor(key) {
         if (key === 'collapsed') return true;
         if (isPostPage() && POST_OFF_KEYS.has(key)) return false;
