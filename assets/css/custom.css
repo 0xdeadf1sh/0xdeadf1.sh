@@ -407,15 +407,18 @@ pre, code {
     font-size: 0.8em;
 }
 
-/* Anthropic-inspired code blocks, high-contrast on a near-black warm
-   ground; token colors live in syntax-highlighting.css. Borders stay
-   lime (from --code-border). */
+/* Lime-family code blocks on a green-tinted near-black ground; token
+   colors live in syntax-highlighting.css. Borders stay lime (from
+   --code-border). */
 pre {
-    background-color: #110e0c;
+    background-color: #0a0f0a;
 }
 
+/* Inline code keeps the warm Anthropic coral, brightened for high
+   contrast, on its own warm ground — visually distinct from the lime
+   blocks. */
 :not(pre) > code {
-    color: #ff8c5e;
+    color: #ffa07a;
     background-color: #110e0c;
 }
 
